@@ -10,6 +10,7 @@ import url_manager
 import html_downloader
 import html_parser
 import html_outputer
+import threading
 import sys  
 
 class SpiderMain(object):
@@ -21,8 +22,7 @@ class SpiderMain(object):
 		self.outputer = html_outputer.HtmlOutputer()
 
 
-	def craw(self,root_url,headers,timeout):
-		count = 1
+	def craw(self,root_url,headers,timeout,count=5):
 		self.urls.add_new_url(root_url)
 		while self.urls.has_new_url():
 
@@ -35,23 +35,26 @@ class SpiderMain(object):
 				new_urls,new_data = self.parser.parse(new_url,html_cont)
 				self.urls.add_new_urls(new_urls)
 				self.outputer.collect_data(new_data)
-
-				if count == 25:
+				count = count -1 
+				if count == 0:
 					break
-				count = count + 1
 
 			except Exception, e:
 				print 'craw failed '
 				print e
 
-		self.outputer.output_html()
+#		self.outputer.output_html()
+		print self.outputer.datas
 
 
 
 if __name__ == '__main__':
+#	root_url = "http://192.168.204.242/cms/"
 	root_url = "https://movie.douban.com/subject/1849031/"
 	headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 	timeout = 3
 	obj_spider = SpiderMain()
-	obj_spider.craw(root_url,headers,timeout)
-
+#	obj_spider.craw(root_url,headers,timeout)
+	for x in range(5):
+		t = threading.Thread(target=obj_spider.craw,args=(root_url,headers,timeout,))
+		t.start()
