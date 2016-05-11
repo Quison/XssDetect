@@ -42,8 +42,6 @@ for new_url in hrefs:
 	new_full_url = urlparse.urljoin(url,new_url)
 	print new_full_url
 
-action = lxml_html.xpath(u"//action")
-print action
 
 
 #form = lxml_html.xpath(u"//form")
