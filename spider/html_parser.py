@@ -13,7 +13,7 @@ class HtmlParser(object):
 	def _get_new_urls(self,page_url,lxml_html):
 		new_urls = set()
 
-		url_node = lxml_html.xpath(u"//div/dl/dt/a")
+		url_node = lxml_html.xpath(u"//a")
 		for url in url_node:
 			new_urls.add(url.attrib['href'])
 
@@ -35,7 +35,7 @@ class HtmlParser(object):
 		return res_data
 
 
-	def parse(self, page_url, html_cont):
+	def parse(self, page_url, html_cont):	
 		
 		if page_url is None or html_cont is None:
 			return
