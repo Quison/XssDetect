@@ -20,3 +20,21 @@ python redis用法：http://blog.csdn.net/chenggong2dm/article/details/6102540
 
 test.py 是测试pybloom 和 redis的代码
 这里讨论下到底怎么存储，以及后面的结果怎么存储
+
+爬虫多线程模块用threading模块吧，参考http://www.jianshu.com/p/86b8e78c418a
+
+
+sqlite3的使用：https://github.com/palantir/sqlite3worker  采用这个库来使用对数据库的操作
+from sqlite3worker import Sqlite3Worker
+sql_worker = Sqlite3Worker("/tmp/test.sqlite")
+sql_worker.execute("CREATE TABLE tester (timestamp DATETIME, uuid TEXT)")
+sql_worker.execute("INSERT into tester values (?, ?)", ("2010-01-01 13:00:00", "bow"))
+sql_worker.execute("INSERT into tester values (?, ?)", ("2011-02-02 14:14:14", "dog"))
+
+results = sql_worker.execute("SELECT * from tester")
+for timestamp, uuid in results:
+    print(timestamp, uuid)
+
+sql_worker.close()
+
+
