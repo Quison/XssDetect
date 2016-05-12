@@ -11,6 +11,7 @@ import html_parser
 import html_outputer
 import threading
 import sys  
+import re
 
 class SpiderMain(object):
 
@@ -21,20 +22,22 @@ class SpiderMain(object):
 		self.outputer = html_outputer.HtmlOutputer()
 
 
-	def craw(self,root_url,headers,timeout,count=15):
+	def craw(self,root_url,headers,timeout,crawl_depth):
+		domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
+
 		self.urls.add_new_url(root_url)
 		while self.urls.has_new_url():
 			try:
 				new_url = self.urls.get_new_url()
-				print 'craw  %d:%s' %(count,new_url)
+				print 'craw  %d:%s' %(crawl_depth,new_url)
 
 				html_cont = self.downloader.download(new_url,headers=headers,timeout=timeout)
-				new_urls = self.parser.parse(new_url,html_cont)
+				new_urls = self.parser.parse(new_url,html_cont,domain)
 #				new_urls,new_data = self.parser.parse(new_url,html_cont)
 				self.urls.add_new_urls(new_urls)
 				self.outputer.collect_data(new_urls)
-				count = count -1 
-				if count == 0:
+				crawl_depth = crawl_depth -1 
+				if crawl_depth == 0:
 					break
 
 			except Exception, e:
@@ -51,8 +54,9 @@ if __name__ == '__main__':
 	root_url = "http://192.168.204.242/cms/index.php"
 	headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 	timeout = 3
+	crawl_depth = 15    # 爬虫深度，最多爬取crawl_depth这么多个链接地址
 	obj_spider = SpiderMain()
-	obj_spider.craw(root_url,headers,timeout)
+	obj_spider.craw(root_url,headers,timeout,crawl_depth)
 #	for x in range(5):
 #		t = threading.Thread(target=obj_spider.craw,args=(root_url,headers,timeout,))
 #		t.start()

@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 
 import sqlite3
-from sqlite3worker import Sqlite3Worker
 import requests
 from lxml import etree
 import lxml.html
