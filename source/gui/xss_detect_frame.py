@@ -18,18 +18,25 @@ import wx.grid
 class XssDetectFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 799,703 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		#Fixed MainFrame's Size
+		self.SetMaxSize(wx.Size(800,730))
+		self.SetMinSize(wx.Size(800,730))
+		#show frame at center of windows
+		self.Center()
+
+#		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
 		main_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.logo_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		logo_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
-		self.logo_bitmap = wx.StaticBitmap( self.logo_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+#		self.logo_bitmap = wx.StaticBitmap( self.logo_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+#		logo_bSizer.Add( self.logo_bitmap, 2, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		self.logo_bitmap = wx.StaticBitmap( self.logo_panel, bitmap=wx.Bitmap( u"images/logo.jpg", wx.BITMAP_TYPE_ANY ))
 		logo_bSizer.Add( self.logo_bitmap, 2, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
-		
 		
 		self.logo_panel.SetSizer( logo_bSizer )
 		self.logo_panel.Layout()
@@ -50,7 +57,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.spider_thread_num_slider = wx.Slider( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, 10, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
 		thread_ctrl_sbSizer.Add( self.spider_thread_num_slider, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.m_staticText_spider_unit = wx.StaticText( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, u"15", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText_spider_unit = wx.StaticText( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, u"10", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText_spider_unit.Wrap( -1 )
 		thread_ctrl_sbSizer.Add( self.m_staticText_spider_unit, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
@@ -65,7 +72,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_thread_num_slider = wx.Slider( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, 10, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
 		thread_ctrl_sbSizer.Add( self.check_thread_num_slider, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.m_staticText_check_unit = wx.StaticText( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, u"15", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText_check_unit = wx.StaticText( thread_ctrl_sbSizer.GetStaticBox(), wx.ID_ANY, u"10", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText_check_unit.Wrap( -1 )
 		thread_ctrl_sbSizer.Add( self.m_staticText_check_unit, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
@@ -94,13 +101,6 @@ class XssDetectFrame ( wx.Frame ):
 		
 		self.cookie_textCtrl = wx.TextCtrl( self.setting_cookie_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		setting_cookie_bSizer.Add( self.cookie_textCtrl, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		self.vercode_staticText = wx.StaticText( self.setting_cookie_panel, wx.ID_ANY, u"验证码链接：", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.vercode_staticText.Wrap( -1 )
-		setting_cookie_bSizer.Add( self.vercode_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		self.vercode_textCtrl = wx.TextCtrl( self.setting_cookie_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		setting_cookie_bSizer.Add( self.vercode_textCtrl, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		self.setting_cookie_panel.SetSizer( setting_cookie_bSizer )
@@ -192,16 +192,15 @@ class XssDetectFrame ( wx.Frame ):
 		self.setting_login_info_ctrl_panel = wx.Panel( setting_login_info_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		settinglogin_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_staticText41 = wx.StaticText( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText41.Wrap( -1 )
-		settinglogin_bSizer.Add( self.m_staticText41, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.vercode_staticText = wx.StaticText( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"验证码链接：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.vercode_staticText.Wrap( -1 )
+		settinglogin_bSizer.Add( self.vercode_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		
+		self.vercode_textCtrl = wx.TextCtrl( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		settinglogin_bSizer.Add( self.vercode_textCtrl, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.vercode_bitmap = wx.StaticBitmap( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.vercode_bitmap, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
-		
-		self.m_staticText42 = wx.StaticText( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText42.Wrap( -1 )
-		settinglogin_bSizer.Add( self.m_staticText42, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		settinglogin_bSizer.Add( self.vercode_bitmap, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		
 		self.get_vercode_button = wx.Button( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"获取验证码", wx.DefaultPosition, wx.DefaultSize, 0 )
 		settinglogin_bSizer.Add( self.get_vercode_button, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -228,15 +227,14 @@ class XssDetectFrame ( wx.Frame ):
 		setting_payload_text_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.payload_text_panel = wx.Panel( self.setting_payload_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		payload_text_bSizer = wx.BoxSizer( wx.VERTICAL )
+		payload_text_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
 		self.payload_staticText = wx.StaticText( self.payload_text_panel, wx.ID_ANY, u"自定义向量：", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.payload_staticText.Wrap( -1 )
 		payload_text_bSizer.Add( self.payload_staticText, 0, wx.ALL, 5 )
 		
-		payload_listBoxChoices = []
-		self.payload_listBox = wx.ListBox( self.payload_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, payload_listBoxChoices, 0 )
-		payload_text_bSizer.Add( self.payload_listBox, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		self.payload_textCtrl = wx.TextCtrl( self.payload_text_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+		payload_text_bSizer.Add( self.payload_textCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.payload_text_panel.SetSizer( payload_text_bSizer )
@@ -313,11 +311,11 @@ class XssDetectFrame ( wx.Frame ):
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.start_crawler_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"开始爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
-		spider_ctrl_bSizer.Add( self.start_crawler_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.start_crawling_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"开始爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
+		spider_ctrl_bSizer.Add( self.start_crawling_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.end_crawler_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"终止爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
-		spider_ctrl_bSizer.Add( self.end_crawler_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.end_crawling_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"终止爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
+		spider_ctrl_bSizer.Add( self.end_crawling_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		self.spider_ctrl_panel.SetSizer( spider_ctrl_bSizer )
@@ -331,14 +329,14 @@ class XssDetectFrame ( wx.Frame ):
 		self.spider_grid = wx.grid.Grid( self.spider_show_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
-		self.spider_grid.CreateGrid( 10, 1 )
+		self.spider_grid.CreateGrid( 0, 1 )
 		self.spider_grid.EnableEditing( True )
 		self.spider_grid.EnableGridLines( True )
 		self.spider_grid.EnableDragGridSize( False )
 		self.spider_grid.SetMargins( 0, 0 )
 		
 		# Columns
-		self.spider_grid.SetColSize( 0, 666 )
+		self.spider_grid.SetColSize( 0, 665 )
 		self.spider_grid.EnableDragColMove( False )
 		self.spider_grid.EnableDragColSize( True )
 		self.spider_grid.SetColLabelSize( 30 )
@@ -383,9 +381,9 @@ class XssDetectFrame ( wx.Frame ):
 		self.reflect_check_staticText.Wrap( -1 )
 		reflected_check_bSizer.Add( self.reflect_check_staticText, 0, wx.ALL, 5 )
 		
-		self.reflect_checking_url = wx.StaticText( self.reflect_check_panel, wx.ID_ANY, u"www.baidu.com..", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.reflect_checking_url = wx.StaticText( self.reflect_check_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.reflect_checking_url.Wrap( -1 )
-		reflected_check_bSizer.Add( self.reflect_checking_url, 0, wx.ALL, 5 )
+		reflected_check_bSizer.Add( self.reflect_checking_url, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		self.reflect_check_panel.SetSizer( reflected_check_bSizer )
@@ -400,9 +398,9 @@ class XssDetectFrame ( wx.Frame ):
 		self.stored_check_staticText.Wrap( -1 )
 		stored_check_bSizer.Add( self.stored_check_staticText, 0, wx.ALL, 5 )
 		
-		self.stored_checking_url = wx.StaticText( self.stored_check_panel, wx.ID_ANY, u"www.baidu.com..", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.stored_checking_url = wx.StaticText( self.stored_check_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.stored_checking_url.Wrap( -1 )
-		stored_check_bSizer.Add( self.stored_checking_url, 0, wx.ALL, 5 )
+		stored_check_bSizer.Add( self.stored_checking_url, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		self.stored_check_panel.SetSizer( stored_check_bSizer )
@@ -443,7 +441,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_grid = wx.grid.Grid( self.check_show_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
-		self.check_grid.CreateGrid( 10, 3 )
+		self.check_grid.CreateGrid( 0, 3 )
 		self.check_grid.EnableEditing( False )
 		self.check_grid.EnableGridLines( True )
 		self.check_grid.EnableDragGridSize( False )
@@ -492,8 +490,142 @@ class XssDetectFrame ( wx.Frame ):
 		self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.spider_thread_num_slider.Bind( wx.EVT_SCROLL, self.OnSpiderThreadNumScroll )
+		self.check_thread_num_slider.Bind( wx.EVT_SCROLL, self.OnCheckThreadNumScroll )
+		self.get_vercode_button.Bind( wx.EVT_BUTTON, self.OnGetVercodeButtonClick )
+		self.login_button.Bind( wx.EVT_BUTTON, self.OnLoginButtonClick )
+		self.save_payload_button.Bind( wx.EVT_BUTTON, self.OnSavePayloadButtonClick )
+		self.m_button6.Bind( wx.EVT_BUTTON, self.OnSaveSettingInfoButtonClick )
+		self.start_crawling_button.Bind( wx.EVT_BUTTON, self.OnBeginCrawlingButtonClick )
+		self.end_crawling_button.Bind( wx.EVT_BUTTON, self.OnEndCrawlingButtonClick )
+		self.start_check_button.Bind( wx.EVT_BUTTON, self.OnBeginCheckButtonClick )
+		self.end_check_button.Bind( wx.EVT_BUTTON, self.OnEndCheckButtonClick )
 	
 	def __del__( self ):
 		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def OnSpiderThreadNumScroll( self, event ):
+		self.m_staticText_spider_unit.SetLabel(str(self.spider_thread_num_slider.GetValue()))
+		event.Skip()
+	
+	def OnCheckThreadNumScroll( self, event ):
+		self.m_staticText_check_unit.SetLabel(str(self.check_thread_num_slider.GetValue()))
+		event.Skip()
+	
+	def OnGetVercodeButtonClick( self, event ):
+		event.Skip()
+	
+	def OnLoginButtonClick( self, event ):
+		event.Skip()
+	
+	def OnSavePayloadButtonClick( self, event ):
+		event.Skip()
+	
+	def OnSaveSettingInfoButtonClick( self, event ):
+		event.Skip()
+	
+	def OnBeginCrawlingButtonClick( self, event ):
+		if self.start_crawling_button.GetLabel() == u"开始爬取":
+			self.start_crawling_button.SetLabel(u"暂停爬取")
+			for i in range(100):
+				self.print_on_spider_grid("http://www.baidu.com/" + str(i))
+			
+			# do something...
+
+		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
+			self.start_crawling_button.SetLabel(u"开始爬取")
+			# do something...
+
+		event.Skip()
+	
+	def OnEndCrawlingButtonClick( self, event ):
+		self.start_crawling_button.SetLabel(u"开始爬取")
+
+		# do something...
+
+		event.Skip()
+	
+	def OnBeginCheckButtonClick( self, event ):
+		if self.start_check_button.GetLabel() == u"开始检测":
+			self.start_check_button.SetLabel(u"暂停检测")
+			self.set_reflect_cheking_url("www.baidu.com")
+			self.set_stored_cheking_url("www.kaixinmahua.com")
+
+			result_list = [u"反射型", u"www.baidu.com", "<srcipt>alert('hell0')</script>"]
+
+			for i in range(100):
+				self.print_on_check_grid(result_list)
+
+			# do something...
+
+		elif self.start_check_button.GetLabel() == u"暂停检测":
+			self.start_check_button.SetLabel(u"开始检测")
+
+		event.Skip()
+	
+	def OnEndCheckButtonClick( self, event ):
+
+		self.start_check_button.SetLabel(u"开始检测")
+
+		# do something...
+
+		event.Skip()
+
+	def print_on_spider_grid(self, url):
+		"""Print url on spider grid.
+		
+		Print already crawl url on grid.
+
+		Args:
+			url: a already crawl url string
+
+		"""
+		self.spider_grid.AppendRows()
+		rows = self.spider_grid.GetNumberRows()
+		self.spider_grid.SetCellValue(rows-1, 0, unicode(url))
+
+	def clear_spider_grid(self):
+		"""
+		Clear spider grid and romve rows.
+		"""
+		self.spider_grid.ClearGrid()
+		rows = self.spider_grid.GetNumberRows()
+
+		if rows > 0:
+			self.spider_grid.DeleteRows(0, rows-1)
+		
+
+	def print_on_check_grid(self, result_list):
+		"""Print result_list on spider grid.
+
+		Args:
+			result_list: a list contain xss_type, xss_url and xss_payload.
+		"""
+		self.check_grid.AppendRows()
+		rows = self.check_grid.GetNumberRows()
+		for col in range(3):
+			self.check_grid.SetCellValue(rows-1, col, unicode(result_list[col]))
+
+
+	def clear_check_grid(self):
+		"""
+		Clear check grid and romve rows.
+		"""
+		self.check_grid.ClearGrid()
+		rows = self.check_grid.GetNumberRows()
+
+		if rows > 0:
+			self.check_grid.DeleteRows(0, rows-1)
+
+
+	def set_reflect_cheking_url(self, reflect_checking_url):
+		self.reflect_checking_url.SetLabel(reflect_checking_url)
+
+	def set_stored_cheking_url(self, stored_checking_url):
+		self.stored_checking_url.SetLabel(stored_checking_url)
 	
 
