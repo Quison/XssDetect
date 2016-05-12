@@ -35,7 +35,8 @@ class SpiderMain(object):
 				new_urls = self.parser.parse(new_url,html_cont,domain)
 #				new_urls,new_data = self.parser.parse(new_url,html_cont)
 				self.urls.add_new_urls(new_urls)
-				self.outputer.collect_data(new_urls)
+				self.outputer.collect_urls(new_urls)
+
 				crawl_depth = crawl_depth -1 
 				if crawl_depth == 0:
 					break
@@ -44,7 +45,7 @@ class SpiderMain(object):
 				print 'craw failed '
 				print e
 
-#		self.outputer.output_html()
+		self.outputer.insert_get_data()
 #		print self.outputer.datas
 
 
