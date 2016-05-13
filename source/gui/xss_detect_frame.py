@@ -6,10 +6,17 @@
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
 ###########################################################################
+import sys
 
 import wx
 import wx.xrc
 import wx.grid
+
+sys.path.append(r"../util")
+
+from file_helper import FileHelper
+
+
 
 ###########################################################################
 ## Class XssDetectFrame
@@ -196,8 +203,8 @@ class XssDetectFrame ( wx.Frame ):
 		self.vercode_staticText.Wrap( -1 )
 		settinglogin_bSizer.Add( self.vercode_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.vercode_textCtrl = wx.TextCtrl( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.vercode_textCtrl, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.vercode_url_textCtrl = wx.TextCtrl( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		settinglogin_bSizer.Add( self.vercode_url_textCtrl, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.vercode_bitmap = wx.StaticBitmap( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		settinglogin_bSizer.Add( self.vercode_bitmap, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
@@ -245,7 +252,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.exclude_url_panel = wx.Panel( self.setting_payload_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		exclude_url_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.exclude_url_staticText = wx.StaticText( self.exclude_url_panel, wx.ID_ANY, u"排除的URL：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.exclude_url_staticText = wx.StaticText( self.exclude_url_panel, wx.ID_ANY, u"排除的URL(以空格分隔)：", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.exclude_url_staticText.Wrap( -1 )
 		exclude_url_bSizer.Add( self.exclude_url_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
@@ -523,9 +530,15 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnSavePayloadButtonClick( self, event ):
+		payload_content = self.payload_textCtrl.GetValue()
+		FileHelper.save_payload(payload_content)
+		self.confirm_dialog(u"保存PAYLOAD成功！")
 		event.Skip()
 	
 	def OnSaveSettingInfoButtonClick( self, event ):
+		setting_info_dict = self.get_setting_info()
+		FileHelper.save_setting_info(setting_info_dict)
+		self.confirm_dialog(u"保存设置成功！")
 		event.Skip()
 	
 	def OnBeginCrawlingButtonClick( self, event ):
@@ -625,7 +638,46 @@ class XssDetectFrame ( wx.Frame ):
 	def set_reflect_cheking_url(self, reflect_checking_url):
 		self.reflect_checking_url.SetLabel(reflect_checking_url)
 
+
 	def set_stored_cheking_url(self, stored_checking_url):
 		self.stored_checking_url.SetLabel(stored_checking_url)
+
+
+	def get_setting_info(self):
+		"""
+		将配置信息格式化成键值对用于保存到配置文件中
+		"""
+		spider_thread_num = str(self.spider_thread_num_slider.GetValue())
+		check_thread_num = str(self.check_thread_num_slider.GetValue())
+		login_url = self.login_url_textCtrl.GetValue()
+		cookie = self.cookie_textCtrl.GetValue()
+		username_key = self.username_key_textCtrl.GetValue()
+		username_value = self.username_value_textCtr.GetValue()
+		password_key = self.password_key_textCtrl.GetValue()
+		password_value = self.password_value_textCtr.GetValue()
+		vercode_key = self.vercode_key_textCtrl.GetValue()
+		vercode_value = self.vercode_value_textCtr.GetValue()
+		vercode_url = self.vercode_url_textCtrl.GetValue()
+		exclude_url = self.exclude_url_textCtrl.GetValue()
+
+		# 放到字典中
+		setting_info_dict = {}
+		setting_info_dict["spider_thread_num"] = spider_thread_num
+		setting_info_dict["check_thread_num"] = check_thread_num
+		setting_info_dict["login_url"] = login_url
+		setting_info_dict["cookie"] = cookie
+		setting_info_dict[username_key] = username_value
+		setting_info_dict[password_key] = password_value
+		setting_info_dict[vercode_key] = vercode_value
+		setting_info_dict["vercode_url"] = vercode_url
+		setting_info_dict["exclude_url"] = exclude_url
+
+		return setting_info_dict
+
+
+	def confirm_dialog(self, message):
+		dialog = wx.MessageDialog(None, message, u"Xss Detector", wx.OK)
+		if dialog.ShowModal() == wx.ID_OK:
+			dialog.Destroy()
 	
 

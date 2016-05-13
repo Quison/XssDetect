@@ -44,7 +44,7 @@
             <property name="minimum_size"></property>
             <property name="name">XssDetectFrame</property>
             <property name="pos"></property>
-            <property name="size">800,700</property>
+            <property name="size">800,747</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass"></property>
             <property name="title">Xss Detector</property>
@@ -3488,7 +3488,7 @@
                                                                     <property name="aui_row"></property>
                                                                     <property name="best_size"></property>
                                                                     <property name="bg"></property>
-                                                                    <property name="bitmap"></property>
+                                                                    <property name="bitmap">Load From Art Provider; ; -1; -1</property>
                                                                     <property name="caption"></property>
                                                                     <property name="caption_visible">1</property>
                                                                     <property name="center_pane">0</property>
