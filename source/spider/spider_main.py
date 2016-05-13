@@ -51,13 +51,13 @@ class SpiderMain(object):
 
 
 if __name__ == '__main__':
-#	root_url = "http://192.168.204.242/cms/"
+#	root_url = "https://docs.python.org/3/library/sqlite3.html"
 	root_url = "http://192.168.204.242/cms/index.php"
 	headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 	timeout = 3
 	crawl_depth = 15    # 爬虫深度，最多爬取crawl_depth这么多个链接地址
 	obj_spider = SpiderMain()
-	obj_spider.craw(root_url,headers,timeout,crawl_depth)
-#	for x in range(5):
-#		t = threading.Thread(target=obj_spider.craw,args=(root_url,headers,timeout,))
-#		t.start()
+#	obj_spider.craw(root_url,headers,timeout,crawl_depth)
+	for x in range(5):
+		t = threading.Thread(target=obj_spider.craw,args=(root_url,headers,timeout,crawl_depth))
+		t.start()

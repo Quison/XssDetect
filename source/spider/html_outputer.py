@@ -1,7 +1,9 @@
 #_*_coding:utf-8_*_
 
 from sqlite3worker import Sqlite3Worker
-import sqlite3
+import logging
+logging.basicConfig()
+
 
 class HtmlOutputer(object):
 
@@ -23,24 +25,17 @@ class HtmlOutputer(object):
 #		print "sssssssssssssssssss"
 
 	def insert_get_data(self):
-		conn = sqlite3.connect('spiderurls.db')
-		cursor = conn.cursor()
-#		cursor.execute("CREATE TABLE spiderurls (id INTEGER, method TEXT, url TEXT, data TEXT)")
-		for url in self.urls:
-			count = 1 
-			cursor.execute("INSERT INTO spiderurls VALUES (count,'GET',url,'dingdong')")
-			count = count + 1
-		cursor.close()
-		conn.commit()
-		conn.close()
-#		sql_worker = Sqlite3Worker('spiderurls.db')
-#		sql_worker.execute("CREATE TABLE spiderurls (id INTEGER, method TEXT, url TEXT, data TEXT)")
-#		print self.urls
-#		for url in self.urls:
-#			count = 1 
-#			sql_worker.execute("INSERT INTO spiderurls VALUES (count,'GET',url,"")")
-#			count = count + 1
 
+		sql_worker = Sqlite3Worker("../comm/spiderurls.db")
+		sql_worker.execute("DROP TABLE IF EXISTS spiderurls")
+		sql_worker.execute("CREATE TABLE IF NOT EXISTS spiderurls( \
+					id INTEGER PRIMARY KEY, \
+					url TEXT \
+					)")
+		
+		for url in self.urls:
+			sql_worker.execute("INSERT INTO spiderurls (url) VALUES (?) ",(url,))
+		sql_worker.close()
 
 	def output_html(self):
 		with open('output.html','w') as fout:
