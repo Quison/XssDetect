@@ -509,6 +509,9 @@ class XssDetectFrame ( wx.Frame ):
 		self.end_crawling_button.Bind( wx.EVT_BUTTON, self.OnEndCrawlingButtonClick )
 		self.start_check_button.Bind( wx.EVT_BUTTON, self.OnBeginCheckButtonClick )
 		self.end_check_button.Bind( wx.EVT_BUTTON, self.OnEndCheckButtonClick )
+
+		# 填写初始配置信息
+		self.init_setting();
 	
 	def __del__( self ):
 		pass
@@ -531,13 +534,13 @@ class XssDetectFrame ( wx.Frame ):
 	
 	def OnSavePayloadButtonClick( self, event ):
 		payload_content = self.payload_textCtrl.GetValue()
-		FileHelper.save_payload(payload_content)
+		FileHelper.write_payload(payload_content)
 		self.confirm_dialog(u"保存PAYLOAD成功！")
 		event.Skip()
 	
 	def OnSaveSettingInfoButtonClick( self, event ):
 		setting_info_dict = self.get_setting_info()
-		FileHelper.save_setting_info(setting_info_dict)
+		FileHelper.write_setting_info(setting_info_dict)
 		self.confirm_dialog(u"保存设置成功！")
 		event.Skip()
 	
@@ -666,18 +669,51 @@ class XssDetectFrame ( wx.Frame ):
 		setting_info_dict["check_thread_num"] = check_thread_num
 		setting_info_dict["login_url"] = login_url
 		setting_info_dict["cookie"] = cookie
-		setting_info_dict[username_key] = username_value
-		setting_info_dict[password_key] = password_value
-		setting_info_dict[vercode_key] = vercode_value
+		setting_info_dict["username_key"] = username_key
+		setting_info_dict["username_value"] = username_value
+		setting_info_dict["password_key"] = password_key
+		setting_info_dict["password_value"] = password_value
+		setting_info_dict["vercode_key"] = vercode_key
+		setting_info_dict["vercode_value"] = vercode_value
 		setting_info_dict["vercode_url"] = vercode_url
 		setting_info_dict["exclude_url"] = exclude_url
 
 		return setting_info_dict
-
 
 	def confirm_dialog(self, message):
 		dialog = wx.MessageDialog(None, message, u"Xss Detector", wx.OK)
 		if dialog.ShowModal() == wx.ID_OK:
 			dialog.Destroy()
 	
+
+	def init_setting(self):
+		"""
+		将配置文件中的信息写到界面上
+		"""
+		# 设置配置信息
+		setting_info_dict = FileHelper.read_setting_info()
+
+		self.spider_thread_num_slider.SetValue(int(setting_info_dict["spider_thread_num"]))
+		self.check_thread_num_slider.SetValue(int(setting_info_dict["check_thread_num"]))
+
+		self.m_staticText_spider_unit.SetLabel(setting_info_dict["spider_thread_num"])
+		self.m_staticText_check_unit.SetLabel(setting_info_dict["check_thread_num"])
+
+		self.login_url_textCtrl.SetValue(setting_info_dict["login_url"])
+		self.cookie_textCtrl.SetValue(setting_info_dict["cookie"])
+		self.username_key_textCtrl.SetValue(setting_info_dict["username_key"])
+		self.username_value_textCtr.SetValue(setting_info_dict["username_value"])
+		self.password_key_textCtrl.SetValue(setting_info_dict["password_key"])
+		self.password_value_textCtr.SetValue(setting_info_dict["password_value"])
+		self.vercode_key_textCtrl.SetValue(setting_info_dict["vercode_key"])
+		self.vercode_value_textCtr.SetValue(setting_info_dict["vercode_value"])
+		self.vercode_url_textCtrl.SetValue(setting_info_dict["vercode_url"])
+		self.exclude_url_textCtrl.SetValue(setting_info_dict["exclude_url"])
+
+		# 设置payload
+		payload_content = FileHelper.read_payload()
+		self.payload_textCtrl.SetValue(payload_content)
+
+
+
 
