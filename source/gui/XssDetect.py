@@ -1,7 +1,12 @@
 #_*_coding:utf-8_*_
 
+import sys
+
 import wx
 from xss_detect_frame import XssDetectFrame
+
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
 
 class XssDetectApp(wx.App):
 	"""
