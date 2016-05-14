@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
 
 class FileHelper:
 	"""
@@ -24,9 +28,9 @@ class FileHelper:
 		读取payload文件存放到列表中
 		"""
 		f = open(FileHelper._PAYLOAD_FILE)
-		payload = []
+		payload_content = []
 		for line in f:
-			payload.append(line.strip())
+			payload_content.append(line.strip())
 		f.close()
 		return payload_content
 
