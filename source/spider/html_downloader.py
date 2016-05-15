@@ -14,7 +14,7 @@ class HtmlDownloader(object):
 		try:
 			r = requests.get(url,headers=headers,timeout=timeout)
 			if r.status_code == requests.codes.ok:
-				return r.text	
+				return r.content	
 		except Exception, e:
 			return None
 

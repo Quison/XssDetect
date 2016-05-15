@@ -24,7 +24,7 @@ class SpiderThread(threading.Thread):
 		self.root_url = root_url
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 		self.timeout = 3
-		self.crawl_depth = 55
+		self.crawl_depth = 2
 
 		self.timeToQuit = threading.Event()
 		self.timeToQuit.clear()
@@ -32,7 +32,9 @@ class SpiderThread(threading.Thread):
 		self.spider_main = SpiderMain()
 
 	def stop(self):
+		spider_main.set_end_crawl(True)
 		self.timeToQuit.set()
+
 
 	def run(self):
 		for url in self.spider_main.craw(self.root_url,self.headers,self.timeout,self.crawl_depth):

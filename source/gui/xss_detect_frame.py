@@ -16,11 +16,13 @@ reload(sys)
 sys.setdefaultencoding( "utf-8" )
 
 sys.path.append(r"../comm")
+sys.path.append(r"../spider")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
 from authentication import Authentication
 from spider_thread import SpiderThread
+from url_manager import UrlManager
 
 
 ###########################################################################
@@ -333,6 +335,13 @@ class XssDetectFrame ( wx.Frame ):
 		
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.crawl_depth_staticText = wx.StaticText( self.spider_ctrl_panel, wx.ID_ANY, u"爬取深度：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.crawl_depth_staticText.Wrap( -1 )
+		spider_ctrl_bSizer.Add( self.crawl_depth_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		
+		self.crawl_depth_textCtrl = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		spider_ctrl_bSizer.Add( self.crawl_depth_textCtrl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.start_crawling_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"开始爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
 		spider_ctrl_bSizer.Add( self.start_crawling_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -583,14 +592,17 @@ class XssDetectFrame ( wx.Frame ):
 		if self.start_crawling_button.GetLabel() == u"开始爬取":
 			self.start_crawling_button.SetLabel(u"暂停爬取")
 			self.end_crawling_button.Enable(True)
-
-			# 如果当前状态是终止检测的状态，清空表 
+			# 创建线程
+			root_url = self.seed_url_text.GetValue()
+			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			if self.is_end_crawling:
 				self.clear_spider_grid()
 				self.is_end_crawling = False
+				UrlManager.clear_all_data()
+				UrlManager.init_spider(root_url)
+
 			
-			# 创建线程
-			root_url = self.seed_url_text.GetValue()
+			
 			for i in range(spider_thread_num):
 				t = SpiderThread(self, root_url)
 				self.spider_threads.append(t)
