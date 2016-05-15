@@ -22,6 +22,12 @@
 > 3. SQLite3（数据库），下载地址：http://www.sqlite.org/download.html；
 
 
+## 3、运行
+　　界面的运行直接运行gui目录下的XssDetect.py就可以了（后期后调整）：
+```
+python XssDetect.py
+```
+
 　　
 
 
