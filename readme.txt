@@ -17,29 +17,8 @@ readme.txt   相关信息记录文件
 依赖库：
 requests
 
-
-install bitarray(该模块是pybloom的依赖模块)： https://pypi.python.org/pypi/bitarray/
-install pybloom: https://pypi.python.org/pypi/pybloom
-
-利用程序参考：http://pydoc.net/Python/pybloom/1.1/pybloom.pybloom/
-github地址：https://github.com/jaybaird/python-bloomfilter/
-
-
-安装过程中，如果错误：error: Microsoft Visual C++ 9.0 is required (Unable to find vcvarsall.bat). Get it from http://aka.ms/vcpython27 
-该错误需要安装vs2008，或者下载下面的文件进行安装https://www.microsoft.com/en-us/download/details.aspx?id=44266
-
-
-
-win install redis : http://jingyan.baidu.com/article/f25ef2546119fd482c1b8214.html
-redis:   https://github.com/MSOpenTech/redis/releases
-
-python redis: https://pypi.python.org/pypi/redis
-python redis用法：http://blog.csdn.net/chenggong2dm/article/details/6102540
-
-
-
-test.py 是测试pybloom 和 redis的代码
-这里讨论下到底怎么存储，以及后面的结果怎么存储
+url处理：
+urlparse 
 
 爬虫多线程模块用threading模块吧，参考http://www.jianshu.com/p/86b8e78c418a
 
@@ -56,5 +35,3 @@ for timestamp, uuid in results:
     print(timestamp, uuid)
 
 sql_worker.close()
-
-

