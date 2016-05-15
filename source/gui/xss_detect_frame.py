@@ -12,9 +12,14 @@ import wx
 import wx.xrc
 import wx.grid
 
-sys.path.append(r"../util")
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
+
+sys.path.append(r"../utils")
 
 from file_helper import FileHelper
+from common_util import CommonUtil
+from authentication import Authentication
 
 
 
@@ -23,6 +28,12 @@ from file_helper import FileHelper
 ###########################################################################
 
 class XssDetectFrame ( wx.Frame ):
+	
+	# 用于判断是否已经终止爬取
+	is_end_crawling = False
+
+	# 用于判断是否已经终止检测
+	is_end_checking = False
 	
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -530,6 +541,23 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnLoginButtonClick( self, event ):
+		# 将登录界面的信息保存到配置信息
+		FileHelper.write_setting_info(self.get_setting_info())
+
+		# 登录
+		return_content = Authentication.login()
+
+		# 判断登录是否成功（返回则字典成功）
+		if isinstance(return_content, int):
+			self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
+
+		# 讲gookie回写到配置界面中
+		elif isinstance(return_content, dict):
+			self.cookie_textCtrl.SetValue(unicode(return_content))
+			self.confirm_dialog(u"登录成功！")
+			# 将登录界面的信息保存到配置信息
+			FileHelper.write_setting_info(self.get_setting_info())
+
 		event.Skip()
 	
 	def OnSavePayloadButtonClick( self, event ):
@@ -547,9 +575,17 @@ class XssDetectFrame ( wx.Frame ):
 	def OnBeginCrawlingButtonClick( self, event ):
 		if self.start_crawling_button.GetLabel() == u"开始爬取":
 			self.start_crawling_button.SetLabel(u"暂停爬取")
+
+			# 如果当前状态是终止检测的状态，清空表 
+			if self.is_end_crawling:
+				self.clear_spider_grid()
+				self.is_end_crawling = False
+
+			# test start
 			for i in range(100):
 				self.print_on_spider_grid("http://www.baidu.com/" + str(i))
-			
+			#test end
+
 			# do something...
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
@@ -560,6 +596,7 @@ class XssDetectFrame ( wx.Frame ):
 	
 	def OnEndCrawlingButtonClick( self, event ):
 		self.start_crawling_button.SetLabel(u"开始爬取")
+		self.is_end_crawling = True
 
 		# do something...
 
@@ -568,6 +605,13 @@ class XssDetectFrame ( wx.Frame ):
 	def OnBeginCheckButtonClick( self, event ):
 		if self.start_check_button.GetLabel() == u"开始检测":
 			self.start_check_button.SetLabel(u"暂停检测")
+
+			# 如果当前状态是终止检测的状态，清空表
+			if self.is_end_checking:
+				self.clear_check_grid()
+				self.is_end_checking = False
+
+			# test start
 			self.set_reflect_cheking_url("www.baidu.com")
 			self.set_stored_cheking_url("www.kaixinmahua.com")
 
@@ -576,15 +620,20 @@ class XssDetectFrame ( wx.Frame ):
 			for i in range(100):
 				self.print_on_check_grid(result_list)
 
+			# test end
+
 			# do something...
 
 		elif self.start_check_button.GetLabel() == u"暂停检测":
 			self.start_check_button.SetLabel(u"开始检测")
 
+			#do something
+
 		event.Skip()
 	
 	def OnEndCheckButtonClick( self, event ):
-
+		# 设置已经终止检测
+		self.is_end_checking = True
 		self.start_check_button.SetLabel(u"开始检测")
 
 		# do something...
@@ -612,7 +661,7 @@ class XssDetectFrame ( wx.Frame ):
 		rows = self.spider_grid.GetNumberRows()
 
 		if rows > 0:
-			self.spider_grid.DeleteRows(0, rows-1)
+			self.spider_grid.DeleteRows(0, rows)
 		
 
 	def print_on_check_grid(self, result_list):
@@ -635,7 +684,7 @@ class XssDetectFrame ( wx.Frame ):
 		rows = self.check_grid.GetNumberRows()
 
 		if rows > 0:
-			self.check_grid.DeleteRows(0, rows-1)
+			self.check_grid.DeleteRows(0, rows)
 
 
 	def set_reflect_cheking_url(self, reflect_checking_url):
@@ -644,7 +693,6 @@ class XssDetectFrame ( wx.Frame ):
 
 	def set_stored_cheking_url(self, stored_checking_url):
 		self.stored_checking_url.SetLabel(stored_checking_url)
-
 
 	def get_setting_info(self):
 		"""
@@ -685,34 +733,42 @@ class XssDetectFrame ( wx.Frame ):
 		if dialog.ShowModal() == wx.ID_OK:
 			dialog.Destroy()
 	
-
 	def init_setting(self):
 		"""
 		将配置文件中的信息写到界面上
 		"""
 		# 设置配置信息
-		setting_info_dict = FileHelper.read_setting_info()
+		adict = FileHelper.read_setting_info()
 
-		self.spider_thread_num_slider.SetValue(int(setting_info_dict["spider_thread_num"]))
-		self.check_thread_num_slider.SetValue(int(setting_info_dict["check_thread_num"]))
+		# 设置爬虫线程数
+		spider_thread_num = CommonUtil.get_dict_value(adict, "spider_thread_num")
+		if(spider_thread_num == ""):
+			spider_thread_num = "10"
+		self.spider_thread_num_slider.SetValue(int(spider_thread_num))
+		self.m_staticText_spider_unit.SetLabel(spider_thread_num)
 
-		self.m_staticText_spider_unit.SetLabel(setting_info_dict["spider_thread_num"])
-		self.m_staticText_check_unit.SetLabel(setting_info_dict["check_thread_num"])
+		#设置检测线程数
+		check_thread_num = CommonUtil.get_dict_value(adict, "check_thread_num")
+		if(check_thread_num == ""):
+			check_thread_num = "10"
+		self.check_thread_num_slider.SetValue(int(check_thread_num))
+		self.m_staticText_check_unit.SetLabel(check_thread_num)
 
-		self.login_url_textCtrl.SetValue(setting_info_dict["login_url"])
-		self.cookie_textCtrl.SetValue(setting_info_dict["cookie"])
-		self.username_key_textCtrl.SetValue(setting_info_dict["username_key"])
-		self.username_value_textCtr.SetValue(setting_info_dict["username_value"])
-		self.password_key_textCtrl.SetValue(setting_info_dict["password_key"])
-		self.password_value_textCtr.SetValue(setting_info_dict["password_value"])
-		self.vercode_key_textCtrl.SetValue(setting_info_dict["vercode_key"])
-		self.vercode_value_textCtr.SetValue(setting_info_dict["vercode_value"])
-		self.vercode_url_textCtrl.SetValue(setting_info_dict["vercode_url"])
-		self.exclude_url_textCtrl.SetValue(setting_info_dict["exclude_url"])
+		self.login_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "login_url"))
+		self.cookie_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "cookie"))
+		self.username_key_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "username_key"))
+		self.username_value_textCtr.SetValue(CommonUtil.get_dict_value(adict, "username_value"))
+		self.password_key_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "password_key"))
+		self.password_value_textCtr.SetValue(CommonUtil.get_dict_value(adict, "password_value"))
+		self.vercode_key_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "vercode_key"))
+		self.vercode_value_textCtr.SetValue(CommonUtil.get_dict_value(adict, "vercode_value"))
+		self.vercode_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "vercode_url"))
+		self.exclude_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "exclude_url"))
 
 		# 设置payload
 		payload_content = FileHelper.read_payload()
-		self.payload_textCtrl.SetValue(payload_content)
+		self.payload_textCtrl.SetValue("\n".join(payload_content))
+
 
 
 
