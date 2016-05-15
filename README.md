@@ -1,2 +1,29 @@
-## XSS Detect
-　　基于python的爬虫检测。
+# Xss探测器
+
+---
+
+## 1、项目结构说明
+　　系统有如下结构目录：
+> * bin/，可执行程序目录
+> * document/，相关文档存放目录
+> * source/，源码存放目录
+　　-check/，Xss检测代码存放目录
+　　-comm/，存放公用代码以及工具类
+　　-gui/，存放界面相关代码存放目录
+　　-spider/，爬虫程序相关代码存放
+　　-test/，测试代码存放目录
+
+## 2、项目相关运行环境以及依赖
+　　运行环境：win7
+　　开发语言：python 2.7.10
+　　依赖的库如下：
+> 1. requests - 2.10，下载地址：https://codeload.github.com/kennethreitz/requests/legacy.tar.gz/master，安装；
+> 2. wxPython -3.0，下载地址： http://www.wxpython.org/download.php#msw，选择对应环境版本安装，界面的编辑可以下载wxFormBuilder来编辑；
+> 3. SQLite3（数据库），下载地址：http://www.sqlite.org/download.html；
+
+
+　　
+
+
+
+

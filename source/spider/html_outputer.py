@@ -26,7 +26,7 @@ class HtmlOutputer(object):
 
 	def insert_get_data(self):
 
-		sql_worker = Sqlite3Worker("../comm/spiderurls.db")
+		sql_worker = Sqlite3Worker("../config/spiderurls.db")
 		sql_worker.execute("DROP TABLE IF EXISTS spiderurls")
 		sql_worker.execute("CREATE TABLE IF NOT EXISTS spiderurls( \
 					id INTEGER PRIMARY KEY, \

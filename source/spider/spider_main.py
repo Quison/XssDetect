@@ -29,7 +29,8 @@ class SpiderMain(object):
 		while self.urls.has_new_url():
 			try:
 				new_url = self.urls.get_new_url()
-				print 'craw  %d:%s' %(crawl_depth,new_url)
+				#print 'craw  %d:%s' %(crawl_depth,new_url)
+				
 
 				html_cont = self.downloader.download(new_url,headers=headers,timeout=timeout)
 				new_urls = self.parser.parse(new_url,html_cont,domain)
@@ -40,7 +41,8 @@ class SpiderMain(object):
 				crawl_depth = crawl_depth -1 
 				if crawl_depth == 0:
 					break
-
+				
+				yield new_url
 			except Exception, e:
 				print 'craw failed '
 				print e
@@ -52,7 +54,8 @@ class SpiderMain(object):
 
 if __name__ == '__main__':
 #	root_url = "https://docs.python.org/3/library/sqlite3.html"
-	root_url = "http://192.168.204.242/cms/index.php"
+#	root_url = "http://192.168.204.242/cms/index.php"
+	root_url = "http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html"
 	headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 	timeout = 3
 	crawl_depth = 15    # 爬虫深度，最多爬取crawl_depth这么多个链接地址
