@@ -15,7 +15,7 @@ import wx.grid
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
 
-sys.path.append(r"../util")
+sys.path.append(r"../utils")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
@@ -545,7 +545,19 @@ class XssDetectFrame ( wx.Frame ):
 		FileHelper.write_setting_info(self.get_setting_info())
 
 		# 登录
-		Authentication.login()
+		return_content = Authentication.login()
+
+		# 判断登录是否成功（返回则字典成功）
+		if isinstance(return_content, int):
+			self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
+
+		# 讲gookie回写到配置界面中
+		elif isinstance(return_content, dict):
+			self.cookie_textCtrl.SetValue(unicode(return_content))
+			self.confirm_dialog(u"登录成功！")
+			# 将登录界面的信息保存到配置信息
+			FileHelper.write_setting_info(self.get_setting_info())
+
 		event.Skip()
 	
 	def OnSavePayloadButtonClick( self, event ):
@@ -755,7 +767,7 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 设置payload
 		payload_content = FileHelper.read_payload()
-		self.payload_textCtrl.SetValue(unicode(payload_content))
+		self.payload_textCtrl.SetValue("\n".join(payload_content))
 
 
 

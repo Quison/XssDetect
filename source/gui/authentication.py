@@ -6,7 +6,7 @@ import requests
 
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
-sys.path.append(r"../util")
+sys.path.append(r"../utils")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
@@ -16,13 +16,16 @@ class Authentication:
 	def __init__(self):
 		pass
 
-	def get_vercode(self, vercode_url):
-		pass
+	@staticmethod
+	def get_vercode():
+		r = requests.get("https://account.tophant.com/captcha")
+		print r.history
+		print r.status_code
 
 	@staticmethod
 	def login():
 		"""
-		读取配置信息登录
+		读取配置信息登录返回cookie
 		"""
 		# 读取配置文件
 		adict = FileHelper.read_setting_info()
@@ -36,8 +39,14 @@ class Authentication:
 		# 获取登录连接
 		login_url = CommonUtil.get_dict_value(adict, "login_url")
 
-		r = requests.post(login_url, params = post_data)
+		session = requests.session()
+		r = session.post(login_url, data = post_data)
 
-		cookies = r.cookies
+		# 如果请求成功则返回cookie的内容
+		if r.status_code == requests.codes.ok:
+			return requests.utils.dict_from_cookiejar(session.cookies)
 
-		print cookies
+		else:
+			return r.status_code
+
+Authentication.get_vercode()
