@@ -17,19 +17,31 @@
 　　运行环境：win7
 　　开发语言：python 2.7.10
 　　依赖的库如下：
-> 1. requests - 2.10，下载地址：https://codeload.github.com/kennethreitz/requests/legacy.tar.gz/master，安装；
-> 2. wxPython -3.0，下载地址： http://www.wxpython.org/download.php#msw，选择对应环境版本安装，界面的编辑可以下载wxFormBuilder来编辑；
+> 1. requests - 2.10，下载地址：https://codeload.github.com/kennethreitz/requests/legacy.tar.gz/master ，安装；
+> 2. wxPython -3.0，下载地址： http://www.wxpython.org/download.php#msw， 选择对应环境版本安装，界面的编辑可以下载wxFormBuilder来编辑；
 > 3. SQLite3（数据库），下载地址：http://www.sqlite.org/download.html；
+> 4. lxml，解析页面。
 
+　　其中sqlite3的使用：https://github.com/palantir/sqlite3worker ，采用这个库来使用对数据库的操作
+```
+from sqlite3worker import Sqlite3Worker
+sql_worker = Sqlite3Worker("/tmp/test.sqlite")
+sql_worker.execute("CREATE TABLE tester (timestamp DATETIME, uuid TEXT)")
+sql_worker.execute("INSERT into tester values (?, ?)", ("2010-01-01 13:00:00", "bow"))
+sql_worker.execute("INSERT into tester values (?, ?)", ("2011-02-02 14:14:14", "dog"))
+
+results = sql_worker.execute("SELECT * from tester")
+for timestamp, uuid in results:
+    print(timestamp, uuid)
+
+sql_worker.close()
+```
 
 ## 3、运行
 　　界面的运行直接运行gui目录下的XssDetect.py就可以了（后期后调整）：
 ```
 python XssDetect.py
 ```
-
-　　
-
 
 
 
