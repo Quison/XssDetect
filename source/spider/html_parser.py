@@ -4,6 +4,10 @@
 from lxml import etree
 import urlparse
 import re
+import sys
+
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
 
 class HtmlParser(object):
 
@@ -55,7 +59,7 @@ class HtmlParser(object):
 		if page_url is None or html_cont is None:
 			return
 
-		lxml_html = etree.HTML(html_cont)
+		lxml_html = etree.HTML(unicode(html_cont))
 
 		new_urls = self._get_new_urls(page_url,lxml_html,domain)
 #		new_data = self._get_new_data(page_url,lxml_html)

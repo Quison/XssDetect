@@ -15,12 +15,14 @@ import wx.grid
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
 
-sys.path.append(r"../utils")
+sys.path.append(r"../comm")
+sys.path.append(r"../spider")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
 from authentication import Authentication
-
+from spider_thread import SpiderThread
+from url_manager import UrlManager
 
 
 ###########################################################################
@@ -30,10 +32,15 @@ from authentication import Authentication
 class XssDetectFrame ( wx.Frame ):
 	
 	# 用于判断是否已经终止爬取
-	is_end_crawling = False
+	is_end_crawling = True
 
 	# 用于判断是否已经终止检测
-	is_end_checking = False
+	is_end_checking = True
+
+	spider_threads = []
+
+	check_threads = []
+
 	
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -328,11 +335,19 @@ class XssDetectFrame ( wx.Frame ):
 		
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.crawl_depth_staticText = wx.StaticText( self.spider_ctrl_panel, wx.ID_ANY, u"爬取深度：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.crawl_depth_staticText.Wrap( -1 )
+		spider_ctrl_bSizer.Add( self.crawl_depth_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		
+		self.crawl_depth_textCtrl = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		spider_ctrl_bSizer.Add( self.crawl_depth_textCtrl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.start_crawling_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"开始爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
 		spider_ctrl_bSizer.Add( self.start_crawling_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.end_crawling_button = wx.Button( self.spider_ctrl_panel, wx.ID_ANY, u"终止爬取", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.end_crawling_button.Enable(False)
 		spider_ctrl_bSizer.Add( self.end_crawling_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
@@ -573,32 +588,49 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnBeginCrawlingButtonClick( self, event ):
+		spider_thread_num = self.spider_thread_num_slider.GetValue()
 		if self.start_crawling_button.GetLabel() == u"开始爬取":
 			self.start_crawling_button.SetLabel(u"暂停爬取")
-
-			# 如果当前状态是终止检测的状态，清空表 
+			self.end_crawling_button.Enable(True)
+			# 创建线程
+			root_url = self.seed_url_text.GetValue()
+			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			if self.is_end_crawling:
 				self.clear_spider_grid()
 				self.is_end_crawling = False
+				UrlManager.clear_all_data()
+				UrlManager.init_spider(root_url)
 
-			# test start
-			for i in range(100):
-				self.print_on_spider_grid("http://www.baidu.com/" + str(i))
-			#test end
+			
+			
+			for i in range(spider_thread_num):
+				t = SpiderThread(self, root_url)
+				self.spider_threads.append(t)
+				t.start()
 
-			# do something...
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
 			self.start_crawling_button.SetLabel(u"开始爬取")
-			# do something...
+			self.end_crawling_button.Enable(False)
+			# 暂停线程
+			for t in self.spider_threads:
+				print "停",t.getName()
+				print "是否活着",t.isAlive()
+				t.stop()
+				self.spider_threads.remove(t)
 
 		event.Skip()
 	
 	def OnEndCrawlingButtonClick( self, event ):
 		self.start_crawling_button.SetLabel(u"开始爬取")
+		self.end_crawling_button.Enable(False)
 		self.is_end_crawling = True
 
-		# do something...
+		# 暂停线程，并清除
+		for t in self.spider_threads:
+			t.stop()
+			self.spider_threads.remove(t)
+
 
 		event.Skip()
 	
@@ -662,7 +694,6 @@ class XssDetectFrame ( wx.Frame ):
 
 		if rows > 0:
 			self.spider_grid.DeleteRows(0, rows)
-		
 
 	def print_on_check_grid(self, result_list):
 		"""Print result_list on spider grid.
@@ -675,7 +706,6 @@ class XssDetectFrame ( wx.Frame ):
 		for col in range(3):
 			self.check_grid.SetCellValue(rows-1, col, unicode(result_list[col]))
 
-
 	def clear_check_grid(self):
 		"""
 		Clear check grid and romve rows.
@@ -686,10 +716,8 @@ class XssDetectFrame ( wx.Frame ):
 		if rows > 0:
 			self.check_grid.DeleteRows(0, rows)
 
-
 	def set_reflect_cheking_url(self, reflect_checking_url):
 		self.reflect_checking_url.SetLabel(reflect_checking_url)
-
 
 	def set_stored_cheking_url(self, stored_checking_url):
 		self.stored_checking_url.SetLabel(stored_checking_url)
