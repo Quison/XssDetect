@@ -19,7 +19,8 @@
 　　依赖的库如下：
 > 1. requests - 2.10，下载地址：https://codeload.github.com/kennethreitz/requests/legacy.tar.gz/master ，安装；
 > 2. wxPython -3.0，下载地址： http://www.wxpython.org/download.php#msw， 选择对应环境版本安装，界面的编辑可以下载wxFormBuilder来编辑；
-> 3. SQLite3（数据库），下载地址：http://www.sqlite.org/download.html；、
+> 3. SQLite3（数据库），下载地址：http://www.sqlite.org/download.html；
+> 4. lxml，解析页面。
 
 　　其中sqlite3的使用：https://github.com/palantir/sqlite3worker ，采用这个库来使用对数据库的操作
 ```
