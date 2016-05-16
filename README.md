@@ -42,9 +42,4 @@ sql_worker.close()
 python XssDetect.py
 ```
 
-url处理：
-urlparse 
-
-爬虫多线程模块用threading模块吧，参考http://www.jianshu.com/p/86b8e78c418a
-
 
