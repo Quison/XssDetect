@@ -7,6 +7,7 @@
 ## PLEASE DO "NOT" EDIT THIS FILE!
 ###########################################################################
 import sys
+import time
 
 import wx
 import wx.xrc
@@ -24,7 +25,6 @@ from authentication import Authentication
 from spider_thread import SpiderThread
 from url_manager import UrlManager
 
-
 ###########################################################################
 ## Class XssDetectFrame
 ###########################################################################
@@ -41,25 +41,21 @@ class XssDetectFrame ( wx.Frame ):
 
 	check_threads = []
 
-	
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
-		
 		#Fixed MainFrame's Size
 		self.SetMaxSize(wx.Size(800,730))
 		self.SetMinSize(wx.Size(800,730))
 		#show frame at center of windows
 		self.Center()
 
-#		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-		
 		main_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.logo_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		logo_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
-#		self.logo_bitmap = wx.StaticBitmap( self.logo_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-#		logo_bSizer.Add( self.logo_bitmap, 2, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		#self.logo_bitmap = wx.StaticBitmap( self.logo_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		#logo_bSizer.Add( self.logo_bitmap, 2, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		self.logo_bitmap = wx.StaticBitmap( self.logo_panel, bitmap=wx.Bitmap( u"images/logo.jpg", wx.BITMAP_TYPE_ANY ))
 		logo_bSizer.Add( self.logo_bitmap, 2, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		
@@ -594,28 +590,24 @@ class XssDetectFrame ( wx.Frame ):
 			self.end_crawling_button.Enable(True)
 			# 创建线程
 			root_url = self.seed_url_text.GetValue()
+			crawl_depth = self.crawl_depth_textCtrl.GetValue()
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			if self.is_end_crawling:
-				self.clear_spider_grid()
 				self.is_end_crawling = False
-				UrlManager.clear_all_data()
+				self.clear_spider_grid()
+				UrlManager.init_spider(root_url)
 				UrlManager.init_spider(root_url)
 
-			
-			
 			for i in range(spider_thread_num):
-				t = SpiderThread(self, root_url)
+				t = SpiderThread(self, int(crawl_depth))
 				self.spider_threads.append(t)
 				t.start()
-
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
 			self.start_crawling_button.SetLabel(u"开始爬取")
 			self.end_crawling_button.Enable(False)
 			# 暂停线程
 			for t in self.spider_threads:
-				print "停",t.getName()
-				print "是否活着",t.isAlive()
 				t.stop()
 				self.spider_threads.remove(t)
 
@@ -631,7 +623,7 @@ class XssDetectFrame ( wx.Frame ):
 			t.stop()
 			self.spider_threads.remove(t)
 
-
+		UrlManager.reset_spider()
 		event.Skip()
 	
 	def OnBeginCheckButtonClick( self, event ):

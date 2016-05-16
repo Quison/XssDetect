@@ -20,9 +20,7 @@ class HtmlOutputer(object):
 	def collect_urls(self,urls):
 		if urls is None:
 			return
-
 		self.urls = self.urls | urls
-#		print "sssssssssssssssssss"
 
 	def insert_get_data(self):
 

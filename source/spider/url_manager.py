@@ -1,7 +1,10 @@
 #_*_coding:utf-8_*_
 
+import re
 import Queue
+
 from spider_url import SpiderUrl
+
 
 class UrlManager(object):
 	# 待爬取的数据不限长度
@@ -13,25 +16,22 @@ class UrlManager(object):
 	# 已爬取过的url
 	_old_urls = set()
 
+	_domain = None
+
 	def __init__(self):
 		pass
-		#self.new_urls = set()
-		#self.old_urls = set()
-		
-		#list 转换为set，保持原来的程序，转换方式为
-		#
-		#  l = [1,2,3,4,5,6,7,8]
-		#  s = set(l)
-		#  就这样类似强制类型转换。一旦数据量非常大的话，list索引就会很耗时
-		#  这样子也不是很好，后面解析之后存储新的URL，也不是很好，所以还是用直接查询数据库的方式吧。
 
 	@staticmethod
 	def add_new_url(spider_url):
-		if spider_url is None:
+		"""
+		将连接添加到带爬取队列中并设置过滤器
+		"""
+		if (UrlManager._domain is None) or (spider_url is None):
 			return
 
 		url_str = spider_url.get_url_str()
-		if url_str not in UrlManager._url_filter:
+		new_domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",url_str,re.M|re.I)
+		if url_str not in UrlManager._url_filter and new_domain and (new_domain.group()==UrlManager._domain):
 			# 将url添加到带待爬取的url队列
 			UrlManager._new_urls.put(spider_url)
 			# 同时将url添加到过滤器
@@ -39,6 +39,9 @@ class UrlManager(object):
 
 	@staticmethod
 	def add_new_urls(urls_str, depth):
+		"""
+		批量添加新链接
+		"""
 		if urls_str is None or len(urls_str) == 0:
 			return
 
@@ -63,17 +66,24 @@ class UrlManager(object):
 		return new_url
 
 	@staticmethod
-	def clear_all_data():
+	def init_spider(root_url):
+		"""
+		初始化爬虫
+		"""	
+		UrlManager.add_new_url(SpiderUrl(root_url, 0))
+		UrlManager._domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
+		print "初始化"
+
+	@staticmethod
+	def reset_spider():
+		"""
+		重置爬虫设置
+		"""
 		# 清空待爬取链接列表
 		while not(UrlManager._new_urls.empty()):
 			UrlManager._new_urls.get()
 
 		# 重置过滤器
 		UrlManager._url_filter.clear()
-
-		# 清空以爬取的url队列
+		# 清空已爬取的url队列
 		UrlManager._old_urls.clear()
-
-	@staticmethod
-	def init_spider(root_url):
-		UrlManager.add_new_url(SpiderUrl(root_url, 0))
