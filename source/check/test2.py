@@ -15,9 +15,3 @@ Example:
     sql_worker.execute("SELECT * from tester")
     sql_worker.close()
 """
-
-url = "hhhhhhhhhhhhhhhhh"
-data = "mmm"
-for phase in ('GET','POST'):
-	current = url if phase == 'GET' else (data or "")
-	print current

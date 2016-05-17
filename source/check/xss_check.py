@@ -111,7 +111,15 @@ urls = [
 	'http://192.168.204.242/cms/notice.php?id=10',
 	'http://192.168.204.242/cms/list.php?id=16'
 ]
+url = "http://192.168.204.242/cms/list.php?id=22"
 
 xc = xss_check()
-for url in urls:
-	print xc.do_xss_check(url)
+result = xc.do_xss_check(url)
+print result
+print type(result)
+print result[0],result[1]
+
+#for url in urls:
+#	result = xc.do_xss_check(url)
+#	print url
+#	print type(result)
