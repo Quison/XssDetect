@@ -18,6 +18,7 @@ class SpiderThread(threading.Thread):
 	"""
 	爬虫的多线程（由于需要给界面反馈信息，所以需要定制）
 	"""
+
 	def __init__(self, frame, crawl_depth, url_manager):
 
 		threading.Thread.__init__(self)
@@ -34,6 +35,7 @@ class SpiderThread(threading.Thread):
 		self.outputer = html_outputer.HtmlOutputer()
 		self.crawl_depth = crawl_depth
 		self.url_manager = url_manager
+
 		self.stoped = False
 		self.timeout = 3
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
@@ -45,30 +47,31 @@ class SpiderThread(threading.Thread):
 
 	def run(self):
 		while 1:
-			if self.stoped:
-				break
-
-			if self.url_manager.new_url_empty():
+			if self.stoped :
 				break			
-			# 从队列中获取一个待爬取的新连接
-			spider_url = self.url_manager.get_new_url()
+			
+			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
+			if self.url_manager.new_url_empty():
+				time.sleep(3)
+				if self.url_manager.new_url_empty():
+					break
+			else:
+				spider_url = self.url_manager.get_new_url()
+				url_str = spider_url.get_url_str()
+				url_depth = spider_url.get_url_depth()
 
-			url_str = spider_url.get_url_str()
-			url_depth = spider_url.get_url_depth()
-
-			# 如果url的深度超过或等于爬取的深度那么跳过爬下一个
-			if url_depth > self.crawl_depth:
-				continue
-			html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)
+				# 如果url的深度超过或等于爬取的深度那么跳过爬下一个
+				if url_depth > self.crawl_depth:
+					continue
+				html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)
 				
-			# 将解析得的url放入带爬取链接队列中深度+1
-			new_urls_str = self.parser.parse(url_str,html_cont)
+				# 将解析得的url放入带爬取链接队列中深度+1
+				new_urls_str = self.parser.parse(url_str,html_cont)
 
-			self.url_manager.add_new_urls(new_urls_str, url_depth+1)
-			print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
-			#wx.CallAfter(self.frame.print_on_spider_grid, unicode(self.getName() + "--->" + url))
-			self.outputer.collect_urls(new_urls_str)
-
+				self.url_manager.add_new_urls(new_urls_str, url_depth+1)
+				print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
+				wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
+				self.outputer.collect_urls(new_urls_str)
 
 class UrlManager(object):
 	"""
@@ -82,10 +85,7 @@ class UrlManager(object):
 		self.url_filter = set()
 		# 已爬取过的url
 		self.old_urls = set()
-		# 域名用于过滤
-		
-		self.idle_threads = 0
-		self.condition = threading.Condition()
+		self.domain = None
 	
 	def init_spider(self, root_url):
 		self.new_url_queue.put(SpiderUrl(root_url, 0))
@@ -129,7 +129,6 @@ class UrlManager(object):
 		new_url = self.new_url_queue.get()
 		# 将连接添加到已爬取的连接
 		self.old_urls.add(new_url)
-
 		return new_url
 
 
@@ -151,9 +150,9 @@ if __name__ == '__main__':
 	root_url = "http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html"
 	crawl_depth = 2
 	thread_num = 5
-	url_manager = UrlManager(thread_num)
+	url_manager = UrlManager()
 	url_manager.init_spider(root_url)
 	print url_manager.new_url_empty()
 	for x in range(thread_num):
 		t = SpiderThread(None,crawl_depth, url_manager)
-		t.start()	
+		t.start()
