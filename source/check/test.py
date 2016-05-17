@@ -1,22 +1,5 @@
 #_*_coding:utf-8_*_
 
-"""Sqlite thread safe object.
-
-Example:
-    from sqlite3worker import Sqlite3Worker
-    sql_worker = Sqlite3Worker("/tmp/test.sqlite")
-    sql_worker.execute(
-        "CREATE TABLE tester (timestamp DATETIME, uuid TEXT)")
-    sql_worker.execute(
-        "INSERT into tester values (?, ?)", ("2010-01-01 13:00:00", "bow"))
-    sql_worker.execute(
-        "INSERT into tester values (?, ?)", ("2011-02-02 14:14:14", "dog"))
-    sql_worker.execute("SELECT * from tester")
-    sql_worker.close()
-"""
-
-
-#!/usr/bin/env python
 import cookielib, optparse, random, re, string, urllib, urllib2, urlparse
 
 NAME, VERSION, AUTHOR, LICENSE = "Damn Small XSS Scanner (DSXS) < 100 LoC (Lines of Code)", "0.2f", "Miroslav Stampar (@stamparm)", "Public domain (FREE)"
