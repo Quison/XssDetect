@@ -12,8 +12,6 @@ class HtmlParser(object):
 
 	def __init__(self):
 		pass
-	#	self.domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
-
 
 	def _get_new_urls(self,page_url,lxml_html):
 		new_urls = set()

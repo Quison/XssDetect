@@ -22,8 +22,8 @@ sys.path.append(r"../spider")
 from file_helper import FileHelper
 from common_util import CommonUtil
 from authentication import Authentication
-from spider_thread import SpiderThread
-from url_manager import UrlManager
+from spider_main import SpiderThread
+from spider_main import UrlManager
 
 ###########################################################################
 ## Class XssDetectFrame
@@ -534,6 +534,8 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
+
+		self.url_manager = UrlManager()
 	
 	def __del__( self ):
 		pass
@@ -595,11 +597,10 @@ class XssDetectFrame ( wx.Frame ):
 			if self.is_end_crawling:
 				self.is_end_crawling = False
 				self.clear_spider_grid()
-				UrlManager.init_spider(root_url)
-				UrlManager.init_spider(root_url)
+				self.url_manager.init_spider(root_url)
 
 			for i in range(spider_thread_num):
-				t = SpiderThread(self, int(crawl_depth))
+				t = SpiderThread(self, int(crawl_depth), self.url_manager)
 				self.spider_threads.append(t)
 				t.start()
 
@@ -623,7 +624,7 @@ class XssDetectFrame ( wx.Frame ):
 			t.stop()
 			self.spider_threads.remove(t)
 
-		UrlManager.reset_spider()
+		self.url_manager.reset_spider()
 		event.Skip()
 	
 	def OnBeginCheckButtonClick( self, event ):

@@ -17,8 +17,9 @@ class Authentication:
 		pass
 
 	@staticmethod
-	def get_vercode():
-		r = requests.get("https://account.tophant.com/captcha")
+	def get_vercode(url):
+		r = requests.get(url)
+		print r.text
 
 	@staticmethod
 	def login():
@@ -46,3 +47,7 @@ class Authentication:
 
 		else:
 			return r.status_code
+
+if __name__ == '__main__':
+	url = "http://www.zhihu.com/captcha.gif?r=1463383349155&type=login"
+	Authentication.get_vercode(url)
