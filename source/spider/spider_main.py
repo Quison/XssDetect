@@ -19,7 +19,7 @@ class SpiderThread(threading.Thread):
 	爬虫的多线程（由于需要给界面反馈信息，所以需要定制）
 	"""
 
-	def __init__(self, frame, crawl_depth, url_manager):
+	def __init__(self, frame, crawl_depth, url_manager, con):
 
 		threading.Thread.__init__(self)
 		# 初始化参数
@@ -35,6 +35,7 @@ class SpiderThread(threading.Thread):
 		self.outputer = html_outputer.HtmlOutputer()
 		self.crawl_depth = crawl_depth
 		self.url_manager = url_manager
+		self.con = con
 
 		self.stoped = False
 		self.timeout = 3
@@ -47,38 +48,63 @@ class SpiderThread(threading.Thread):
 
 	def run(self):
 		while 1:
+			print "等待线程数",UrlManager.wait_thread_num;
+			print "是否为空",self.url_manager.new_url_empty()
 			if self.stoped :
 				break			
-			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
-			if self.url_manager.new_url_empty():
-				time.sleep(3)
-				if self.url_manager.new_url_empty():
-					break
+			if self.url_manager.new_url_empty() and (UrlManager.thread_num == UrlManager.wait_thread_num):
+				print "退出"
+				break
 			else:
-				spider_url = self.url_manager.get_new_url()
-				url_str = spider_url.get_url_str()
-				url_depth = spider_url.get_url_depth()
+				#print "空闲线程：",UrlManager.wait_thread_num
+				#print "队列是否为空：",self.url_manager.new_url_empty()
+				if self.url_manager.new_url_empty() :
+					#print "空等"
+					self.con.acquire()
+					self.con.wait()
+					self.con.release()
+				elif UrlManager.wait_thread_num == 0:
+					#print "无线程等"
+					self.con.acquire()
+					self.con.wait()
+					self.con.release()
+				else:
+					UrlManager.wait_thread_num -= 1
+					try:
+						spider_url = self.url_manager.get_new_url()
+						url_str = spider_url.get_url_str()
+						url_depth = spider_url.get_url_depth()
 
-				# 如果url的深度超过或等于爬取的深度那么跳过爬下一个
-				if url_depth > self.crawl_depth:
-					continue
-				html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)
+						# 如果url的深度超过或等于爬取的深度那么跳过爬下一个
+						if url_depth > self.crawl_depth:
+							continue
+						html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)
 				
-				# 将解析得的url放入带爬取链接队列中深度+1
-				new_urls_str = self.parser.parse(url_str,html_cont)
+						# 将解析得的url放入带爬取链接队列中深度+1
+						new_urls_str = self.parser.parse(url_str,html_cont)
 
-				self.url_manager.add_new_urls(new_urls_str, url_depth+1)
-				print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
-				wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
-				self.outputer.collect_urls(new_urls_str)
+						self.url_manager.add_new_urls(new_urls_str, url_depth+1)
+						print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
+						#wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
+						self.outputer.collect_urls(new_urls_str)
+						
+					except Exception:
+						print "爬虫错误！"
+					finally:
+						if UrlManager.wait_thread_num < UrlManager.thread_num:
+							UrlManager.wait_thread_num += 1
+							if UrlManager.wait_thread_num > 0:
+								self.con.acquire()
+								self.con.notifyAll()
+								self.con.release()
 
 class UrlManager(object):
 	"""
 	url统一管理
 	"""
 
-	def __init__(self):
+	def __init__(self, thread_num, con):
 		# 待爬取的数据不限长度
 		self.new_url_queue = Queue.Queue(maxsize = -1)
 		# url过滤器
@@ -86,6 +112,10 @@ class UrlManager(object):
 		# 已爬取过的url
 		self.old_urls = set()
 		self.domain = None
+
+		UrlManager.thread_num = thread_num
+		UrlManager.wait_thread_num = thread_num
+		self.con = con
 	
 	def init_spider(self, root_url):
 		self.new_url_queue.put(SpiderUrl(root_url, 0))
@@ -113,9 +143,12 @@ class UrlManager(object):
 		"""
 		if urls_str is None or len(urls_str) == 0:
 			return
+
+		self.con.acquire()
 		for url_str in urls_str:
 			self.add_new_url(SpiderUrl(url_str, depth))
-
+		self.con.notifyAll()
+		self.con.release()
 
 	def new_url_empty(self):
 		"""
@@ -150,9 +183,9 @@ if __name__ == '__main__':
 	root_url = "http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html"
 	crawl_depth = 2
 	thread_num = 5
-	url_manager = UrlManager()
+	con = threading.Condition()
+	url_manager = UrlManager(thread_num, con)
 	url_manager.init_spider(root_url)
-	print url_manager.new_url_empty()
 	for x in range(thread_num):
-		t = SpiderThread(None,crawl_depth, url_manager)
+		t = SpiderThread(None,crawl_depth, url_manager, con)
 		t.start()
