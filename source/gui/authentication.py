@@ -6,7 +6,7 @@ import requests
 
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
-sys.path.append(r"../utils")
+sys.path.append(r"../comm")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
@@ -17,10 +17,9 @@ class Authentication:
 		pass
 
 	@staticmethod
-	def get_vercode():
-		r = requests.get("https://account.tophant.com/captcha")
-		print r.history
-		print r.status_code
+	def get_vercode(url):
+		r = requests.get(url)
+		print r.text
 
 	@staticmethod
 	def login():
@@ -49,4 +48,6 @@ class Authentication:
 		else:
 			return r.status_code
 
-Authentication.get_vercode()
+if __name__ == '__main__':
+	url = "http://www.zhihu.com/captcha.gif?r=1463383349155&type=login"
+	Authentication.get_vercode(url)
