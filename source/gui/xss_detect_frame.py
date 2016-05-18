@@ -524,8 +524,6 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
-
-		self.url_manager = UrlManager()
 	
 	def __del__( self ):
 		pass
@@ -585,14 +583,16 @@ class XssDetectFrame ( wx.Frame ):
 			crawl_depth = self.crawl_depth_textCtrl.GetValue()
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
+			con = threading.Condition()
+			self.url_manager = UrlManager(spider_thread_num,con)
+			self.url_manager.reset_spider()
+
 			self.url_manager.init_spider(root_url)
 
 			for i in range(spider_thread_num):
-				t = SpiderThread(self, int(crawl_depth), self.url_manager)
+				t = SpiderThread(self, int(crawl_depth), self.url_manager, con)
 				self.spider_threads.append(t)
 				t.start()
-			if threading.active_count() == 1:
-				self.confirm_dialog(u"爬取完成！")
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
 			self.start_crawling_button.SetLabel(u"开始爬取")

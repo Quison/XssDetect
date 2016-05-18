@@ -83,10 +83,10 @@ class SpiderThread(threading.Thread):
 				
 						# 将解析得的url放入带爬取链接队列中深度+1
 						new_urls_str = self.parser.parse(url_str,html_cont)
-
-						self.url_manager.add_new_urls(new_urls_str, url_depth+1)
+						if url_depth + 1 <= self.crawl_depth: 
+							self.url_manager.add_new_urls(new_urls_str, url_depth+1)
 						print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
-						#wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
+						wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
 						self.outputer.collect_urls(new_urls_str)
 						
 					except Exception:
