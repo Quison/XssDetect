@@ -33,7 +33,6 @@ class SpiderThread(threading.Thread):
 		self.crawl_depth = crawl_depth
 		self.url_queue = url_queue
 		self.con = con
-
 		self.stoped = False
 		self.timeout = 3
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
@@ -51,50 +50,53 @@ class SpiderThread(threading.Thread):
 				break
 			else:
 				if self.url_queue.is_empty() :
-					self.con.acquire()
-					self.con.wait()
-					self.con.release()
+					self.wait()
 				elif SpiderMain.wait_thread_num == 0:
-					self.con.acquire()
-					self.con.wait()
-					self.con.release()
+					self.wait()
 				else:
 					SpiderMain.wait_thread_num -= 1
 					try:
-						self.work()
+						spider_url = self.url_queue.get()
+						url_str = spider_url.get_url()
+						url_depth = spider_url.get_depth()
+						html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)	
+						# 将解析得的url放入带爬取链接队列中深度+1
+						new_urls_str = self.parser.parse(url_str,html_cont)
+						# 如果深度如果连接的深度超过了就不加入队列
+						if url_depth + 1 <= self.crawl_depth: 
+							self.url_queue.put(new_urls_str, url_depth+1)
+							self.notifyAll()
+						if self.frame != None:
+							wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, spider_url.get_method(), url_depth] )
+						else:
+							print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
+						self.outputer.collect_urls(new_urls_str)
 					except Exception:
 						print "爬虫错误！"
 					finally:
 						if SpiderMain.wait_thread_num < SpiderMain.thread_num:
 							SpiderMain.wait_thread_num += 1
 							if SpiderMain.wait_thread_num > 0:
-								self.con.acquire()
-								self.con.notifyAll()
-								self.con.release()
+								self.notifyAll()
 
-	def work(self):
-		spider_url = self.url_queue.get()
-		url_str = spider_url.get_url()
-		url_depth = spider_url.get_depth()
-		html_cont = self.downloader.download(url_str,headers=self.headers,timeout=self.timeout)	
-		# 将解析得的url放入带爬取链接队列中深度+1
-		new_urls_str = self.parser.parse(url_str,html_cont)
-		if url_depth + 1 <= self.crawl_depth: 
-			self.con.acquire()
-			self.url_queue.put(new_urls_str, url_depth+1)
-			self.con.notifyAll()
-			self.con.release()
-		print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
-		if self.frame != None:
-			wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
-		self.outputer.collect_urls(new_urls_str)	
+	def wait(self):
+		self.con.acquire()
+		self.con.wait()
+		self.con.release()
+
+	def notifyAll(self):
+		self.con.acquire()
+		self.con.notifyAll()
+		self.con.release()
+
 
 class SpiderMain:
 	"""
 	爬虫的控制主类
 	"""
 
-	def __init__(self, root_url, thread_num, crawl_depth):
+	def __init__(self, frame, root_url, thread_num, crawl_depth):
+		self.frame = frame
 		self.root_url = root_url
 		self.crawl_depth = crawl_depth
 
@@ -109,8 +111,8 @@ class SpiderMain:
 		"""
 		初始化线程爬取
 		"""
-		for x in range(thread_num):
-			t = SpiderThread(None, self.crawl_depth, self.url_queue, self.con)
+		for x in range(SpiderMain.thread_num):
+			t = SpiderThread(self.frame, self.crawl_depth, self.url_queue, self.con)
 			self.threads.append(t)
 			t.start()
 
