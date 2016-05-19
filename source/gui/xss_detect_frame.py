@@ -320,6 +320,7 @@ class XssDetectFrame ( wx.Frame ):
 		spider_ctrl_bSizer.Add( self.seed_url_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.seed_url_text.SetValue("http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html")
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.crawl_depth_staticText = wx.StaticText( self.spider_ctrl_panel, wx.ID_ANY, u"爬取深度：", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -579,14 +580,14 @@ class XssDetectFrame ( wx.Frame ):
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
 
-			spider_main = SpiderMain(self, root_url, spider_thread_num, crawl_depth)
-			spider_main.crawling()
+			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth))
+			self.spider_main.crawling()
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
 			self.start_crawling_button.SetLabel(u"开始爬取")
 			# 暂停线程
+			self.spider_main.stop()
 
-			self.confirm_dialog(u"爬取完成！")
 		event.Skip()
 	
 	def OnBeginCheckButtonClick( self, event ):

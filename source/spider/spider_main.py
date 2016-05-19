@@ -3,6 +3,7 @@
 import sys  
 import time
 import threading
+import thread
 import wx
 
 import html_downloader
@@ -23,9 +24,6 @@ class SpiderThread(threading.Thread):
 		# 初始化参数
 		self.frame = frame
 
-		self.timeToQuit = threading.Event()
-		self.timeToQuit.clear()
-
 		#初始化爬虫
 		self.downloader = html_downloader.HtmlDownloader()
 		self.parser = html_parser.HtmlParser()
@@ -33,17 +31,12 @@ class SpiderThread(threading.Thread):
 		self.crawl_depth = crawl_depth
 		self.url_queue = url_queue
 		self.con = con
-		self.stoped = False
 		self.timeout = 3
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 
-	def stop(self):
-		self.stoped = True
-		self.timeToQuit.set()
-
 	def run(self):
 		while 1:
-			if self.stoped :
+			if SpiderMain.stoped :
 				break			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
 			if self.url_queue.is_empty() and (SpiderMain.thread_num == SpiderMain.wait_thread_num):
@@ -68,8 +61,8 @@ class SpiderThread(threading.Thread):
 							self.notifyAll()
 						if self.frame != None:
 							wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, spider_url.get_method(), url_depth] )
-						else:
-							print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
+						#else:
+						print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
 						self.outputer.collect_urls(new_urls_str)
 					except Exception:
 						print "爬虫错误！"
@@ -102,6 +95,7 @@ class SpiderMain:
 
 		SpiderMain.thread_num = thread_num
 		SpiderMain.wait_thread_num = thread_num
+		SpiderMain.stoped = False
 		self.con = threading.Condition()
 
 		self.url_queue = UrlQueue(root_url)
@@ -116,10 +110,39 @@ class SpiderMain:
 			self.threads.append(t)
 			t.start()
 
+		# 启动一个线程检测所有线程，当所有完成工作后提示
+		thread.start_new_thread(self.check_done,())
+
+
+	def stop(self):
+		"""
+		停止
+		"""
+		SpiderMain.stoped = True
+
+	def all_is_done(self):
+		"""
+		所有线程是否都完成工作
+		"""
+		# 如果有线程还活着那么返回False
+		for t in self.threads:
+			if t.is_alive():
+				return False
+		return True
+
+	def check_done(self):
+		"""
+		检查是否所有线程都完成工作
+		"""
+		while 1:
+			if self.all_is_done():
+				break
+		self.frame.confirm_dialog(u"爬取完成！")
+
 if __name__ == '__main__':
 	root_url = "http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html"
 	crawl_depth = 2
 	thread_num = 5
 	con = threading.Condition()
-	spider_main = SpiderMain(root_url, thread_num, crawl_depth)
+	spider_main = SpiderMain(None, root_url, thread_num, crawl_depth)
 	spider_main.crawling()
