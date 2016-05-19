@@ -23,18 +23,13 @@ sys.path.append(r"../spider")
 from file_helper import FileHelper
 from common_util import CommonUtil
 from authentication import Authentication
-from spider_main import SpiderThread
-from spider_main import UrlManager
+from spider_main import SpiderMain
 
 ###########################################################################
 ## Class XssDetectFrame
 ###########################################################################
 
 class XssDetectFrame ( wx.Frame ):
-	
-	spider_threads = []
-
-	check_threads = []
 
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -325,6 +320,7 @@ class XssDetectFrame ( wx.Frame ):
 		spider_ctrl_bSizer.Add( self.seed_url_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.seed_url_text.SetValue("http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html")
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.crawl_depth_staticText = wx.StaticText( self.spider_ctrl_panel, wx.ID_ANY, u"爬取深度：", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -524,8 +520,6 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
-
-		self.url_manager = UrlManager()
 	
 	def __del__( self ):
 		pass
@@ -585,24 +579,15 @@ class XssDetectFrame ( wx.Frame ):
 			crawl_depth = self.crawl_depth_textCtrl.GetValue()
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
-			self.url_manager.init_spider(root_url)
 
-			for i in range(spider_thread_num):
-				t = SpiderThread(self, int(crawl_depth), self.url_manager)
-				self.spider_threads.append(t)
-				t.start()
-			if threading.active_count() == 1:
-				self.confirm_dialog(u"爬取完成！")
+			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth))
+			self.spider_main.crawling()
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
 			self.start_crawling_button.SetLabel(u"开始爬取")
 			# 暂停线程
-			self.url_manager.reset_spider()
-			for t in self.spider_threads:
-				t.stop()
-				self.spider_threads.remove(t)
+			self.spider_main.stop()
 
-			self.confirm_dialog(u"爬取完成！")
 		event.Skip()
 	
 	def OnBeginCheckButtonClick( self, event ):
