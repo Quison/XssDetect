@@ -2,8 +2,10 @@
 #_*_coding:utf-8_*_
 
 from lxml import etree
-import lxml.html
-from StringIO import StringIO
+#import lxml.html
+import string
+import random
+from lxml.html import fromstring, tostring
 import urlparse
 import sys
 
@@ -25,28 +27,40 @@ class HtmlParser(object):
 
 		return new_urls
 
-	# 函数对post表单form进行解析，返回url以及参数和类型
+	# 函数对post表单form进行解析，返回url以及参数data
+	# 注意 html_cont 传入的参数为requests请求的源码，应该为response.text
 	def _post_new_urls(self,page_url,html_cont):
-		HTML = StringIO(html_cont)
-		tree = lxml.html.parse(HTML)
-		root = tree.getroot()
+		parameters = ""
+		html_page = fromstring(html_cont.lower().decode('utf-8'))
 
-		postdata = {} # 最后返回的整个字典
-
-		for form in root.xpath('//form'):
+		for form in html_page.forms:
 			
-			field_info = {} # 参数所有字段信息字典
-			postparm = [] # 参数list
+			for element in form.iter():
 
-			postdata['method'] = form.method
-			postdata['action'] = form.action
-			for field in form.getchildren():
-				field_info['name'] = field.name	#参数名称
-				field_info['type'] = field.type	#参数类型，常见为input类型
-				postparm.append(field_info)
-			postdata['parm'] = postparm
-			
-		return postdata
+				if element.tag == 'input':
+
+					if element.type == 'text' or element.type == 'password':
+						_input = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
+						parameters = parameters + _input + '&'
+					if element.type == 'checkbox':
+						checkbox = element.name + '=' + 'on'
+						parameters = parameters + checkbox + '&'
+					if element.type == 'radio':
+						radio = element.attrib['name'] + '=' + element.attrib['value']
+						parameters = parameters + radio + '&'
+
+				if element.tag == 'textarea':
+					textarea = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
+					parameters = parameters + textarea + '&'
+
+				if element.tag == 'select':
+					select = element.name
+					for x in element.getchildren():
+						pass
+					parameters = parameters + select + '=' + x.attrib['value'] + '&'
+		parameters = parameters[:-1]
+		return page_url,parameters
+
 
 
 	def parse(self, page_url, html_cont):	
