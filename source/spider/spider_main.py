@@ -48,8 +48,8 @@ class SpiderThread(threading.Thread):
 
 	def run(self):
 		while 1:
-			print "等待线程数",UrlManager.wait_thread_num;
-			print "是否为空",self.url_manager.new_url_empty()
+			#print "等待线程数",UrlManager.wait_thread_num;
+			#print "是否为空",self.url_manager.new_url_empty()
 			if self.stoped :
 				break			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
@@ -73,8 +73,8 @@ class SpiderThread(threading.Thread):
 					UrlManager.wait_thread_num -= 1
 					try:
 						spider_url = self.url_manager.get_new_url()
-						url_str = spider_url.get_url_str()
-						url_depth = spider_url.get_url_depth()
+						url_str = spider_url.get_url()
+						url_depth = spider_url.get_depth()
 
 						# 如果url的深度超过或等于爬取的深度那么跳过爬下一个
 						if url_depth > self.crawl_depth:
@@ -84,9 +84,12 @@ class SpiderThread(threading.Thread):
 						# 将解析得的url放入带爬取链接队列中深度+1
 						new_urls_str = self.parser.parse(url_str,html_cont)
 						if url_depth + 1 <= self.crawl_depth: 
+							self.con.acquire()
 							self.url_manager.add_new_urls(new_urls_str, url_depth+1)
+							self.con.notifyAll()
+							self.con.release()
 						print self.getName() +" url:" + url_str + " depth:" + str(url_depth)
-						wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
+						#wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), url_str, "get", url_depth] )
 						self.outputer.collect_urls(new_urls_str)
 						
 					except Exception:
@@ -104,7 +107,7 @@ class UrlManager(object):
 	url统一管理
 	"""
 
-	def __init__(self, thread_num, con):
+	def __init__(self, thread_num):
 		# 待爬取的数据不限长度
 		self.new_url_queue = Queue.Queue(maxsize = -1)
 		# url过滤器
@@ -115,7 +118,6 @@ class UrlManager(object):
 
 		UrlManager.thread_num = thread_num
 		UrlManager.wait_thread_num = thread_num
-		self.con = con
 	
 	def init_spider(self, root_url):
 		self.new_url_queue.put(SpiderUrl(root_url, 0))
@@ -128,7 +130,7 @@ class UrlManager(object):
 		if (self.domain is None) or (spider_url is None):
 			return
 
-		url_str = spider_url.get_url_str()
+		url_str = spider_url.get_url()
 		new_domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",url_str,re.M|re.I)
 		if url_str not in self.url_filter and new_domain and (new_domain.group()==self.domain):
 			# 将url添加到带待爬取的url队列
@@ -144,11 +146,8 @@ class UrlManager(object):
 		if urls_str is None or len(urls_str) == 0:
 			return
 
-		self.con.acquire()
 		for url_str in urls_str:
 			self.add_new_url(SpiderUrl(url_str, depth))
-		self.con.notifyAll()
-		self.con.release()
 
 	def new_url_empty(self):
 		"""
@@ -184,7 +183,7 @@ if __name__ == '__main__':
 	crawl_depth = 2
 	thread_num = 5
 	con = threading.Condition()
-	url_manager = UrlManager(thread_num, con)
+	url_manager = UrlManager(thread_num)
 	url_manager.init_spider(root_url)
 	for x in range(thread_num):
 		t = SpiderThread(None,crawl_depth, url_manager, con)
