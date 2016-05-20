@@ -8,7 +8,12 @@ re.search(pattern, string, flags=0) 扫描整个字符串并返回第一个成�
 re.escape(string) 对字符串中的非字母数字进行转义
 strip() 方法用于移除字符串头尾指定的字符（默认为空格）。
 '''
-import requests, re, urllib, random, string,urllib2
+import os
+import sys
+sys.path.append(r"../comm")
+from sqlite3worker import Sqlite3Worker
+
+import requests, re, urllib, random, string, urllib2
 
 PREFIX_SUFFIX_LENGTH = 5
 SMALLER_CHAR_POOL = ('<', '>')
@@ -44,6 +49,7 @@ class xss_check(object):
 	def _retrieve_content(self, url, data=None):
 		# 把url里面的空格进行urlencode
 		new_url = "".join(url[i].replace(' ', "%20") if i > url.find('?') else url[i] for i in xrange(len(url)))
+		#data = urllib.urlencode(data) if data else ""
 		try:
 			req = urllib2.Request(new_url, data, self.headers)
 			retval = urllib2.urlopen(req, timeout=self.timeout).read()
@@ -53,83 +59,80 @@ class xss_check(object):
 
 	# 判断 chars 是否为 content 的子集
 	def _contains(self, content, chars):
-	    content = re.sub(r"\\[%s]" % re.escape("".join(chars)), "", content) if chars else content
-	    return all(char in content for char in chars)
+		content = re.sub(r"\\[%s]" % re.escape("".join(chars)), "", content) if chars else content
+		return all(char in content for char in chars)
 
 
 
 	#整合GET POST一起检测,data 为post请求参数。函数返回dict，包含问题参数和url
 	def do_xss_check(self, url, data=None):
-	    url, data = re.sub(r"=(&|\Z)", "=1\g<1>", url) if url else url, re.sub(r"=(&|\Z)", "=1\g<1>", data) if data else data
-	    try:
-	        for phase in (GET, POST):
-	            current = url if phase is GET else (data or "")
-	            for match in re.finditer(r"((\A|[?&])(?P<parameter>[\w\[\]]+)=)(?P<value>[^&#]+)", current):#正则匹配参数，如：?page=90&id=34
-	                found, usable = False, True
-	                prefix, suffix = ("".join(random.sample(string.ascii_lowercase, PREFIX_SUFFIX_LENGTH)) for i in xrange(2))#随机生成5个字母的前缀和后缀字母
-	                for pool in (LARGER_CHAR_POOL, SMALLER_CHAR_POOL):
-	                    if not found:
-	                    	# tampered 是把上面获取的参数进行替换，domain+参数+[']前缀+随机pool+后缀，最后吧所有参数都url编码
-	                    	# eg: ?page=8890%27tnmow%3C%3E%27%3B%22ukenc&id=34#at123 （?page=8890'tnmow<>';"ukenc&id=34#at123）
-	                        tampered = current.replace(match.group(0), "%s%s" % (match.group(0), urllib.quote("%s%s%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix, "".join(random.sample(pool, len(pool))), suffix))))
-	                        # 获取攻击之后的源码content
-	                        content = (self._retrieve_content(tampered, data) if phase is GET else _retrieve_content(url, tampered)).replace("%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix), prefix)
-	                        for sample in re.finditer("%s([^ ]+?)%s" % (prefix, suffix), content, re.I):
-	                            for regex, condition, info, content_removal_regex in REGULAR_PATTERNS: #这里循环输出REGULAR_PATTERNS规律，进行匹配相关字段
-	                            	# 使用正则 \A[^<>]*%(chars)s[^<>]*\Z  合并chars(rdjeo\;\"\>\<\'gqejn)之后，进行对返回源进行匹配eg: \A[^<>]*tnmow\;\"\>\<\'ukenc[^<>]*\Z
-	                                context = re.search(regex % {"chars": re.escape(sample.group(0))}, re.sub(content_removal_regex or "", "", content), re.I)
-	                                if context and not found and sample.group(1).strip():
-	                                    if self._contains(sample.group(1), condition):
-	                                    	yield phase,url,match.group("parameter")
-#	                                    	return match.group("parameter"),url
-	                                        found = True                                        
-	                                    break
+		url, data = re.sub(r"=(&|\Z)", "=1\g<1>", url) if url else url, re.sub(r"=(&|\Z)", "=1\g<1>", data) if data else data
+		try:
+			for phase in (GET, POST):
+				current = url if phase is GET else (data or "")
+				for match in re.finditer(r"((\A|[?&])(?P<parameter>[\w\[\]]+)=)(?P<value>[^&#]+)", current):
+					found, usable = False, True
+					prefix, suffix = ("".join(random.sample(string.ascii_lowercase, PREFIX_SUFFIX_LENGTH)) for i in xrange(2))
+					for pool in (LARGER_CHAR_POOL, SMALLER_CHAR_POOL):
+						if not found:
+							tampered = current.replace(match.group(0), "%s%s" % (match.group(0), urllib.quote("%s%s%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix, "".join(random.sample(pool, len(pool))), suffix))))
+							content = (self._retrieve_content(tampered, data) if phase is GET else self._retrieve_content(url, tampered)).replace("%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix), prefix)
+							for sample in re.finditer("%s([^ ]+?)%s" % (prefix, suffix), content, re.I):
+								for regex, condition, info, content_removal_regex in REGULAR_PATTERNS:
+									context = re.search(regex % {"chars": re.escape(sample.group(0))}, re.sub(content_removal_regex or "", "", content), re.I)
+									if context and not found and sample.group(1).strip():
+										if self._contains(sample.group(1), condition):
+											yield phase,url,match.group("parameter")
+											#return match.group("parameter"),url
+											found = True
+										break
 #	        if not usable:
 #	            return "no usable GET/POST parameters found"
-	    except KeyboardInterrupt:
-	        return
+		except KeyboardInterrupt:
+			return
 
 	# dom xss 检测
 	def do_dom_xss_check(self,url):
-	    url = re.sub(r"=(&|\Z)", "=1\g<1>", url) if url else url 
-	    content = requests.get(url).text
-	    original = re.sub(DOM_FILTER_REGEX, "",content)
-	    dom = max(re.search(_, original) for _ in DOM_PATTERNS)
-	    if dom:
-	        return dom.group(0),url
+		phase = "DOM"
+		url = re.sub(r"=(&|\Z)", "=1\g<1>", url) if url else url
+		content = requests.get(url).text
+		original = re.sub(DOM_FILTER_REGEX, "",content)
+		dom = max(re.search(_, original) for _ in DOM_PATTERNS)
+		if dom:
+			yield phase,url,dom.group(0)
+#			return dom.group(0),url
 
+	def xss_check_main(self):
+		if os.path.exists('../config/spiderurls.db'):
+			sql_worker = Sqlite3Worker("../config/spiderurls.db")
+		else:
+			print "db is not exit"
+			return
 
-urls = [
-	'http://192.168.204.242/cms/index.php',
-	'http://192.168.204.242/cms/admin/',
-	'http://192.168.204.242/cms/show.php?id=32',
-	'http://192.168.204.242/cms/show.php?id=33',
-	'http://192.168.204.242/cms/show.php?id=34',
-	'http://192.168.204.242/cms/show.php?id=35',
-	'http://192.168.204.242/cms/list.php?id=22',
-	'http://192.168.204.242/cms/list.php?id=23',
-	'http://192.168.204.242/cms/message.php',
-	'http://192.168.204.242/cms/notice.php?id=10',
-	'http://192.168.204.242/cms/list.php?id=16'
-]
-url = "http://192.168.204.242/cms/list.php?id=22"
+		results = sql_worker.execute("SELECT method,url,param from spiderurls")
+		for method,url,param in results:
+#			print method,url,param
 
+			if method == "GET" or method == "get":
+				yield self.do_xss_check(url)
+			
+			if method == "POST" or method == "post":
+				if param is None:
+					print "post parm is none"
+					continue
+				data = param
+				yield self.do_xss_check(url,data)
+
+		sql_worker.close()
+
+'''
+声明对象，然后循环两次取出数据，返回Tuple(method,url,parameter)
 xc = xss_check()
-result = xc.do_xss_check(url)
-print result
-print type(result)
-print result[0],result[1]
-
-#for url in urls:
-#	result = xc.do_xss_check(url)
-#	print url
-#	print type(result)
+q = xc.xss_check_main()
+for x in q:
+	for a in x:
+		print a
 
 '''
-		sql_worker = Sqlite3Worker("../config/spiderurls.db")
-		sql_worker.execute("DROP TABLE IF EXISTS spiderurls")
-		sql_worker.execute("CREATE TABLE IF NOT EXISTS spiderurls( \
-					id INTEGER PRIMARY KEY, \
-					url TEXT \
-					)")
-'''
+
+
