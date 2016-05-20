@@ -19,12 +19,12 @@ def _retrieve_content(url, data=None):
 #&image.x=68&image.y=37
 #data = {"username":"admin","password":"123456"}
 data = "username=admin&image.x=68&image.y=37&password=123456"
+login_data = dict(username='admin',password='123456')
 url = "http://192.168.204.242/cms/admin/login.action.php"
-s = requests.Session()
-s.post(url,data=data)
-print r.text 
 
-
-q = _retrieve_content(url,data)
-print q
+#http://192.168.204.242/cms/admin/index.php
+s = requests.session()
+s.post(url,data=login_data)
+r = s.get("http://192.168.204.242/cms/admin/index.php")
+print r.content
 

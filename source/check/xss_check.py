@@ -38,7 +38,7 @@ REGULAR_PATTERNS = (
     (r"<[^>]*%(chars)s[^>]*>", (), "\"<.xss.>\", inside the tag, outside of quotes, %(filtering)s filtering", r"(?s)<script.+?</script>|<!--.*?-->"),
 )
 
-class xss_check(object):
+class Xss_Check(object):
 
 	def __init__(self):
 		
