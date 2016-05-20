@@ -80,7 +80,8 @@ class xss_check(object):
 	                                context = re.search(regex % {"chars": re.escape(sample.group(0))}, re.sub(content_removal_regex or "", "", content), re.I)
 	                                if context and not found and sample.group(1).strip():
 	                                    if self._contains(sample.group(1), condition):
-	                                    	return match.group("parameter"),url
+	                                    	yield phase,url,match.group("parameter")
+#	                                    	return match.group("parameter"),url
 	                                        found = True                                        
 	                                    break
 #	        if not usable:
@@ -123,3 +124,12 @@ print result[0],result[1]
 #	result = xc.do_xss_check(url)
 #	print url
 #	print type(result)
+
+'''
+		sql_worker = Sqlite3Worker("../config/spiderurls.db")
+		sql_worker.execute("DROP TABLE IF EXISTS spiderurls")
+		sql_worker.execute("CREATE TABLE IF NOT EXISTS spiderurls( \
+					id INTEGER PRIMARY KEY, \
+					url TEXT \
+					)")
+'''

@@ -29,6 +29,7 @@ class HtmlParser(object):
 
 	# 函数对post表单form进行解析，返回url以及参数data
 	# 注意 html_cont 传入的参数为requests请求的源码，应该为response.text
+	# 注意，有些post请求的method为GET，可能会存在错误。
 	def _post_new_urls(self,page_url,html_cont):
 		parameters = ""
 		html_page = fromstring(html_cont.lower().decode('utf-8'))
