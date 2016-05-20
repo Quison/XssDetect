@@ -4,8 +4,9 @@ import requests
 
 class HtmlDownloader(object):
 
-#	def __init__(self,headers):
-#		self.headers = headers
+	def __init__(self):
+		pass
+
 
 	def download(self, spider_url, headers,timeout):
 		url = spider_url.get_url()

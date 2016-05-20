@@ -10,7 +10,7 @@ class UrlQueue(object):
 	url统一管理
 	"""
 
-	def __init__(self, root_url, crawl_depth):
+	def __init__(self, root_url):
 		# 待爬取的数据不限长度
 		self.url_queue = Queue.Queue(maxsize = -1)
 		# url过滤器
@@ -20,7 +20,6 @@ class UrlQueue(object):
 		# 初始化
 		self.url_queue.put(SpiderUrl(root_url, 0))
 		self.domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
-		self.crawl_depth = crawl_depth
 
 	def __add_new_url(self, spider_url):
 		"""
@@ -32,7 +31,7 @@ class UrlQueue(object):
 		url_str = spider_url.get_url()
 		url_depth = spider_url.get_depth()
 		new_domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",url_str,re.M|re.I)
-		if (url_str not in self.url_filter) and new_domain and (new_domain.group()==self.domain) and (url_depth <= self.crawl_depth):
+		if (url_str not in self.url_filter) and new_domain and (new_domain.group()==self.domain):
 			# 将url添加到带待爬取的url队列
 			self.url_queue.put(spider_url)
 			# 同时将url添加到过滤器
