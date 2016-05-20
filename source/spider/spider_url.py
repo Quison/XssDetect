@@ -4,7 +4,7 @@ class SpiderUrl:
 	"""
 	爬虫的简单对象，存储url以及其对应的数据
 	"""
-	def __init__(self, url, depth, method='get', param=[]):
+	def __init__(self, url, depth, method='get', param=""):
 		self.__url = url
 		self.__depth = depth
 		self.__method = method
@@ -35,7 +35,8 @@ class SpiderUrl:
 		return self.__param
 
 if __name__ == '__main__':
-	spider_url = SpiderUrl("http://www.baidu.com", 2)
+	spider_url = SpiderUrl("http://www.baidu.com", 2, "post", "param")
 	print spider_url.get_url()
 	print spider_url.get_depth()
 	print spider_url.get_method()
+	print spider_url.get_param()

@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 #_*_coding:utf-8_*_
 
+import sys
 from lxml import etree
-#import lxml.html
 import string
 import random
-from lxml.html import fromstring, tostring
+
 import urlparse
-import sys
+
+from lxml.html import fromstring, tostring
+from spider_url import SpiderUrl
+
 
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
@@ -17,59 +20,87 @@ class HtmlParser(object):
 	def __init__(self):
 		pass
 
-	def _get_new_urls(self,page_url,lxml_html):
-		new_urls = set()
+	def _get_new_urls(self, spider_url, lxml_html):
+		"""
+		解析get类型的url
+		"""
+		spider_url_set = set()
+		# 获取解析的url的链接和深度
+		url_str = spider_url.get_url()
+		url_depth = spider_url.get_depth()
 
 		url_node = lxml_html.xpath(u"//a/@href")
 		for url in url_node:
-			new_full_url = urlparse.urljoin(page_url,url)
-			new_urls.add(new_full_url)
+			new_url_str = urlparse.urljoin(url_str,url)
 
-		return new_urls
+			# 创建一个spider_url，深度为原来的深度加1
+			new_spider_url = SpiderUrl(new_url_str, url_depth+1, "get")
+			spider_url_set.add(new_spider_url)
+
+		return spider_url_set
 
 	# 函数对post表单form进行解析，返回url以及参数data
 	# 注意 html_cont 传入的参数为requests请求的源码，应该为response.text
-	# 注意，有些post请求的method为GET，可能会存在错误。
-	def _post_new_urls(self,page_url,html_cont):
+	def _post_new_urls(self, spider_url, html_cont):
+		"""
+		解析post类型的url
+		"""
+		
+		spider_url_set = set()
+		url_str = spider_url.get_url()
+		url_depth = spider_url.get_depth()
 		parameters = ""
 		html_page = fromstring(html_cont.lower().decode('utf-8'))
-
 		for form in html_page.forms:
-			
-			for element in form.iter():
+			new_url_str = urlparse.urljoin(url_str, form.action)
+			url_method = form.method
 
+			for element in form.iter():
 				if element.tag == 'input':
 
 					if element.type == 'text' or element.type == 'password':
-						_input = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
-						parameters = parameters + _input + '&'
+						if element.name is not None:
+							_input = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
+							parameters = parameters + _input + '&'
 					if element.type == 'checkbox':
-						checkbox = element.name + '=' + 'on'
-						parameters = parameters + checkbox + '&'
+						if element.name is not None:
+							checkbox = element.name + '=' + 'on'
+							parameters = parameters + checkbox + '&'
 					if element.type == 'radio':
 						radio = element.attrib['name'] + '=' + element.attrib['value']
 						parameters = parameters + radio + '&'
 
 				if element.tag == 'textarea':
-					textarea = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
-					parameters = parameters + textarea + '&'
+					if element.name is not None:
+						textarea = element.name+'='+("".join(random.sample(string.ascii_lowercase, 5)))
+						parameters = parameters + textarea + '&'
 
 				if element.tag == 'select':
-					select = element.name
-					for x in element.getchildren():
-						pass
-					parameters = parameters + select + '=' + x.attrib['value'] + '&'
-		parameters = parameters[:-1]
-		return page_url,parameters
+					if element.name is not None:
+						select = element.name
+						for x in element.getchildren():
+							pass
+						parameters = parameters + select + '=' + x.attrib['value'] + '&'
+
+				url_parameters = parameters[:-1]
+
+			new_spider_url = SpiderUrl(new_url_str, url_depth+1, "post", url_parameters)
+
+			spider_url_set.add(new_spider_url)
+
+		return spider_url_set
 
 
 
-	def parse(self, page_url, html_cont):	
+	def parse(self, spider_url, html_cont):	
 		
-		if page_url is None or html_cont is None:
+		if spider_url is None or html_cont is None:
 			return
 
 		lxml_html = etree.HTML(html_cont)
-		new_urls = self._get_new_urls(page_url,lxml_html)
-#		new_urls = self._post_new_urls(page_url,html_cont)
-		return new_urls
+		get_spider_url_set = self._get_new_urls(spider_url,lxml_html)
+		post_spider_url_set = self._post_new_urls(spider_url,html_cont)
+
+		# 返回他们的并集
+		return get_spider_url_set|post_spider_url_set
+
