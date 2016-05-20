@@ -19,11 +19,13 @@ sys.setdefaultencoding( "utf-8" )
 
 sys.path.append(r"../comm")
 sys.path.append(r"../spider")
+sys.path.append(r"../check")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
 from authentication import Authentication
 from spider_main import SpiderMain
+from xss_check_main import CheckMain
 
 ###########################################################################
 ## Class XssDetectFrame
@@ -471,9 +473,9 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_grid.EnableDragColMove( False )
 		self.check_grid.EnableDragColSize( True )
 		self.check_grid.SetColLabelSize( 30 )
-		self.check_grid.SetColLabelValue( 0, u"XSS漏洞类型" )
-		self.check_grid.SetColLabelValue( 1, u"存在漏洞的URL" )
-		self.check_grid.SetColLabelValue( 2, u"PAYLOAD" )
+		self.check_grid.SetColLabelValue( 0, u"请求类型" )
+		self.check_grid.SetColLabelValue( 1, u"URL" )
+		self.check_grid.SetColLabelValue( 2, u"问题参数" )
 		self.check_grid.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Rows
@@ -591,18 +593,18 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnBeginCheckButtonClick( self, event ):
+		check_thread_num = self.check_thread_num_slider.GetValue()
 		if self.start_check_button.GetLabel() == u"开始检测":
 			self.start_check_button.SetLabel(u"暂停检测")
 			# 如果当前状态是终止检测的状态，清空表
 			self.clear_check_grid()
+			self.check_main = CheckMain(self,check_thread_num)
+			self.check_main.checking()
 
-			# test end
-
-			# do something...
 
 		elif self.start_check_button.GetLabel() == u"暂停检测":
 			self.start_check_button.SetLabel(u"开始检测")
-
+			self.check_main.stop()
 			#do something
 
 		event.Skip()

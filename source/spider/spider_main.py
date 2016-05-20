@@ -158,7 +158,7 @@ class SpiderMain:
 			if self.frame.start_crawling_button.GetLabel() == u"暂停爬取":
 				self.frame.start_crawling_button.SetLabel(u"开始爬取")
 		else:
-			print u"所有线程是否都完成工作。。。"
+			print u"所有线程都完成工作。。。"
 
 		# 睡眠三秒再关闭数据库连接，不然有些线程没写完会引发异常
 		time.sleep(3)

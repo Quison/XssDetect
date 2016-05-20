@@ -11,9 +11,12 @@ strip() 方法用于移除字符串头尾指定的字符（默认为空格）。
 import os
 import sys
 sys.path.append(r"../comm")
+import wx
 from sqlite3worker import Sqlite3Worker
 
 import requests, re, urllib, random, string, urllib2
+
+
 
 PREFIX_SUFFIX_LENGTH = 5
 SMALLER_CHAR_POOL = ('<', '>')
@@ -38,7 +41,7 @@ REGULAR_PATTERNS = (
     (r"<[^>]*%(chars)s[^>]*>", (), "\"<.xss.>\", inside the tag, outside of quotes, %(filtering)s filtering", r"(?s)<script.+?</script>|<!--.*?-->"),
 )
 
-class Xss_Check(object):
+class XssCheck(object):
 
 	def __init__(self):
 		
@@ -82,6 +85,7 @@ class Xss_Check(object):
 									context = re.search(regex % {"chars": re.escape(sample.group(0))}, re.sub(content_removal_regex or "", "", content), re.I)
 									if context and not found and sample.group(1).strip():
 										if self._contains(sample.group(1), condition):
+											#yield 'a','b','c','d'
 											yield phase,url,match.group("parameter")
 											#return match.group("parameter"),url
 											found = True
@@ -127,12 +131,10 @@ class Xss_Check(object):
 
 '''
 声明对象，然后循环两次取出数据，返回Tuple(method,url,parameter)
-xc = xss_check()
+xc = XssCheck()
 q = xc.xss_check_main()
 for x in q:
 	for a in x:
 		print a
-
 '''
-
 
