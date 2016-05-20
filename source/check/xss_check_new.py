@@ -101,7 +101,13 @@ def do_dom_xss_check(url):
         return dom.group(0),url
 
 
-url = "http://127.0.0.1/cms/show.php?id=35"
-q = do_xss_check(url)
+url = "http://192.168.204.242/cms/post_test.php"
+#http://192.168.204.242/cms/search.php?keywords=11111111&button=%E6%90%9C%E7%B4%A2
+#data = {"keywords":"11111111"}
+data = "worlds=sss"
+#q = _retrieve_content(url, data)
+#url = "http://192.168.204.242/cms/search.php"
+#data = "keywords=1111111"
+q = do_xss_check(url,data)
 print q
 
