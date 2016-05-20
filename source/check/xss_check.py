@@ -112,6 +112,8 @@ class Xss_Check(object):
 		results = sql_worker.execute("SELECT method,url,param from spiderurls")
 		for method,url,param in results:
 #			print method,url,param
+			
+			yield self.do_dom_xss_check(url)
 
 			if method == "GET" or method == "get":
 				yield self.do_xss_check(url)
