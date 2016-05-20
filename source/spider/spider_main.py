@@ -19,7 +19,7 @@ class SpiderThread(threading.Thread):
 	爬虫的线程类
 	"""
 
-	def __init__(self, name, frame, crawl_depth, url_queue, con, outputer):
+	def __init__(self, name, frame, url_queue, con, outputer):
 
 		threading.Thread.__init__(self)
 		# 线程名
@@ -31,7 +31,6 @@ class SpiderThread(threading.Thread):
 		self.downloader = html_downloader.HtmlDownloader()
 		self.parser = html_parser.HtmlParser()
 		self.outputer = outputer
-		self.crawl_depth = crawl_depth
 		self.url_queue = url_queue
 		self.con = con
 
@@ -42,6 +41,7 @@ class SpiderThread(threading.Thread):
 		while 1:
 			#print "空 ",self.url_queue.is_empty()
 			#print "空闲 ",SpiderMain.wait_thread_num
+			time.sleep(0.5)
 			if SpiderMain.stoped:
 				break			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
@@ -55,18 +55,19 @@ class SpiderThread(threading.Thread):
 				else:
 					SpiderMain.wait_thread_num -= 1
 					try:
+
 						spider_url = self.url_queue.get()
+						# 下载
 						html_cont = self.downloader.download(spider_url, headers=self.headers, timeout=self.timeout)	
-						# 将解析得的url放入带爬取链接队列中深度+1
+						# 将解析得的url放入带爬取链接队列中深度已经+1
 						spider_url_set = self.parser.parse(spider_url,html_cont)
-						
-						if (spider_url.get_depth() + 1) <= self.crawl_depth:
-							# 如果深度如果连接的深度超过了就不加入队列
-							self.url_queue.put(spider_url_set)
-							# 将数据写到数据库（注没过滤的后面调整）
-							self.outputer.write_date(spider_url_set)
-							# 唤醒因为队列为空而等待的线程
-							self.notifyAll()
+						# 将已爬取的这个spider_url写入数据库
+						self.outputer.write_date(spider_url)
+
+						# 如果深度如果连接的深度超过了就不加入队列
+						self.url_queue.put(spider_url_set)
+						# 等待0.5秒等待加入完成后唤醒因为队列为空而等待的线程
+						self.notifyAll()
 
 						if self.frame != None:
 							wx.CallAfter(self.frame.print_on_spider_grid, [self.getName(), spider_url.get_url(), spider_url.get_method(), spider_url.get_depth()] )
@@ -107,7 +108,7 @@ class SpiderMain:
 		SpiderMain.stoped = False
 		self.con = threading.Condition()
 
-		self.url_queue = UrlQueue(root_url)
+		self.url_queue = UrlQueue(root_url, crawl_depth)
 		self.outputer = html_outputer.HtmlOutputer()
 
 		self.threads = []
@@ -117,7 +118,7 @@ class SpiderMain:
 		初始化线程爬取
 		"""
 		for x in range(SpiderMain.thread_num):
-			t = SpiderThread("Thread-"+str(x+1), self.frame, self.crawl_depth, self.url_queue, self.con, self.outputer)
+			t = SpiderThread("Thread-"+str(x+1), self.frame, self.url_queue, self.con, self.outputer)
 			self.threads.append(t)
 			t.start()
 

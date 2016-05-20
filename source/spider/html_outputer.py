@@ -1,8 +1,10 @@
 #_*_coding:utf-8_*_
 
-from sqlite3worker import Sqlite3Worker
+import sys
 import logging
 logging.basicConfig()
+sys.path.append(r"../comm")
+from sqlite3worker import Sqlite3Worker
 
 
 class HtmlOutputer(object):
@@ -18,12 +20,11 @@ class HtmlOutputer(object):
 					param TEXT\
 					)")
 
-	def write_date(self, spider_url_set):
-		if spider_url_set is None:
+	def write_date(self, spider_url):
+		if spider_url is None:
 			return
-		for spider_url in spider_url_set:
-			self.sql_worker.execute("INSERT INTO spiderurls (url, depth, method, param) VALUES (?,?,?,?) ",
-				(spider_url.get_url(), spider_url.get_depth(), spider_url.get_method(), spider_url.get_param()))
+		self.sql_worker.execute("INSERT INTO spiderurls (url, depth, method, param) VALUES (?,?,?,?) ",
+			(spider_url.get_url(), spider_url.get_depth(), spider_url.get_method(), spider_url.get_param()))
 
 	def close_sql_worker(self):
 		self.sql_worker.close()
