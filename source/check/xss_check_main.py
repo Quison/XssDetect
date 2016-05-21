@@ -15,36 +15,55 @@ sys.setdefaultencoding( "utf-8" )
 
 class XssCheckThread(threading.Thread):
 	
-	def __init__(self, frame, con):
+	def __init__(self, name, frame, lock):
 		threading.Thread.__init__(self)
+		self.name = name
 		self.stoped = False
 		self.frame = frame
 		self.xss_check = XssCheck()
-		self.con = con
+		self.lock = lock
 
 	def run(self):
 		while 1:
-			time.sleep(1)
+			spiderurl = None
 			if CheckMain.stoped:
 				break
 			if len(CheckMain.spiderurls) <= 0:
 				break
 			else:
 				# 注记得加锁
+				self.lock.acquire()
 				spiderurl = CheckMain.spiderurls.pop()
+				self.lock.release()
+
+			if spiderurl is not None:
 				# 注spiderurl为method,url,param的一个元组
-				if spiderurl[0] and spiderurl[0].lower() == 'get':
-					# do get check
+				method = spiderurl[0]
+				url = spiderurl[1]
+				param = spiderurl[2]
+				self.frame.checking_url_staticText.SetLabel(unicode(url))
+				if method is not None and (method.lower() == 'get'):
+					# 测试打印对接
 					self.print_result(spiderurl)
-				elif spiderurl[0] and spiderurl[0].lower() == 'post':
+
+					#for result_tuple in self.xss_check.do_xss_check(url):
+					#	self.print_result(result_tuple)
+				elif (method is not None) and (method.lower() == 'post'):
+					# 测试打印对接
 					self.print_result(spiderurl)
-					# do post check
+
+					#if param is None:
+					#	locktinue
+					#for result_tuple in self.xss_check.do_xss_check(url, param):
+					#	self.print_result(result_tuple)
 
 	def print_result(self, result_tuple):
+		result_list = [self.getName()]
+		result_list.extend(list(result_tuple))
 		if self.frame is not None:
-			wx.CallAfter(self.frame.print_on_check_grid, list(result_tuple))
+			wx.CallAfter(self.frame.print_on_check_grid, result_list)
 		else:
-			print self.getName(),"  ",result_tuple
+			print result_list
 
 
 class CheckMain(object):
@@ -56,7 +75,7 @@ class CheckMain(object):
 		self.thread_num = thread_num
 		CheckMain.stoped = False
 		self.threads = []
-		self.con = threading.Condition()
+		self.lock = threading.Lock()
 
 		# 从数据库中查数据
 		self.sql_worker = Sqlite3Worker("../config/spiderurls.db")
@@ -64,7 +83,7 @@ class CheckMain(object):
 
 	def checking(self):
 		for i in range(self.thread_num):
-			t = XssCheckThread(self.frame, self.con)
+			t = XssCheckThread("Thread-"+str(i+1), self.frame, self.lock)
 			self.threads.append(t)
 			t.start()
 
