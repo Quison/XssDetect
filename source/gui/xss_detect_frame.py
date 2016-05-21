@@ -394,65 +394,22 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_ctrl_panel = wx.Panel( self.check_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		check_ctrl_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.checking_panel = wx.Panel( self.check_ctrl_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		checking_bSizer = wx.BoxSizer( wx.VERTICAL )
+		self.checking_staticText = wx.StaticText( self.check_ctrl_panel, wx.ID_ANY, u"正在检测：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.checking_staticText.Wrap( -1 )
+		check_ctrl_bSizer.Add( self.checking_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.reflect_check_panel = wx.Panel( self.checking_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		reflected_check_bSizer = wx.BoxSizer( wx.HORIZONTAL )
+		self.checking_url_staticText = wx.StaticText( self.check_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.checking_url_staticText.Wrap( -1 )
+		check_ctrl_bSizer.Add( self.checking_url_staticText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.reflect_check_staticText = wx.StaticText( self.reflect_check_panel, wx.ID_ANY, u"反射型XSS检测：", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.reflect_check_staticText.Wrap( -1 )
-		reflected_check_bSizer.Add( self.reflect_check_staticText, 0, wx.ALL, 5 )
-		
-		self.reflect_checking_url = wx.StaticText( self.reflect_check_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.reflect_checking_url.Wrap( -1 )
-		reflected_check_bSizer.Add( self.reflect_checking_url, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		
-		self.reflect_check_panel.SetSizer( reflected_check_bSizer )
-		self.reflect_check_panel.Layout()
-		reflected_check_bSizer.Fit( self.reflect_check_panel )
-		checking_bSizer.Add( self.reflect_check_panel, 1, wx.EXPAND |wx.ALL, 5 )
-		
-		self.stored_check_panel = wx.Panel( self.checking_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		stored_check_bSizer = wx.BoxSizer( wx.HORIZONTAL )
-		
-		self.stored_check_staticText = wx.StaticText( self.stored_check_panel, wx.ID_ANY, u"存储型XSS检测：", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.stored_check_staticText.Wrap( -1 )
-		stored_check_bSizer.Add( self.stored_check_staticText, 0, wx.ALL, 5 )
-		
-		self.stored_checking_url = wx.StaticText( self.stored_check_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.stored_checking_url.Wrap( -1 )
-		stored_check_bSizer.Add( self.stored_checking_url, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		
-		self.stored_check_panel.SetSizer( stored_check_bSizer )
-		self.stored_check_panel.Layout()
-		stored_check_bSizer.Fit( self.stored_check_panel )
-		checking_bSizer.Add( self.stored_check_panel, 1, wx.EXPAND |wx.ALL, 5 )
-		
-		
-		self.checking_panel.SetSizer( checking_bSizer )
-		self.checking_panel.Layout()
-		checking_bSizer.Fit( self.checking_panel )
-		check_ctrl_bSizer.Add( self.checking_panel, 6, wx.EXPAND |wx.ALL, 5 )
-		
-		self.ctrl_panel = wx.Panel( self.check_ctrl_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		ctrl_bSizer9 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.start_check_button = wx.Button( self.ctrl_panel, wx.ID_ANY, u"开始检测", wx.DefaultPosition, wx.DefaultSize, 0 )
-		ctrl_bSizer9.Add( self.start_check_button, 0, wx.ALL, 5 )	
-		
-		self.ctrl_panel.SetSizer( ctrl_bSizer9 )
-		self.ctrl_panel.Layout()
-		ctrl_bSizer9.Fit( self.ctrl_panel )
-		check_ctrl_bSizer.Add( self.ctrl_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		self.start_check_button = wx.Button( self.check_ctrl_panel, wx.ID_ANY, u"开始检测", wx.DefaultPosition, wx.DefaultSize, 0 )
+		check_ctrl_bSizer.Add( self.start_check_button, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		self.check_ctrl_panel.SetSizer( check_ctrl_bSizer )
 		self.check_ctrl_panel.Layout()
 		check_ctrl_bSizer.Fit( self.check_ctrl_panel )
-		check_bSizer.Add( self.check_ctrl_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		check_bSizer.Add( self.check_ctrl_panel, 0, wx.EXPAND |wx.ALL, 5 )
 		
 		self.check_show_panel = wx.Panel( self.check_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		check_show_bSizer = wx.BoxSizer( wx.VERTICAL )
@@ -460,7 +417,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_grid = wx.grid.Grid( self.check_show_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
-		self.check_grid.CreateGrid( 0, 3 )
+		self.check_grid.CreateGrid( 0, 4 )
 		self.check_grid.EnableEditing( False )
 		self.check_grid.EnableGridLines( True )
 		self.check_grid.EnableDragGridSize( False )
@@ -468,14 +425,17 @@ class XssDetectFrame ( wx.Frame ):
 		
 		# Columns
 		self.check_grid.SetColSize( 0, 80 )
-		self.check_grid.SetColSize( 1, 422 )
-		self.check_grid.SetColSize( 2, 163 )
+		self.check_grid.SetColSize( 1, 75 )
+		self.check_grid.SetColSize( 2, 400 )
+		self.check_grid.SetColSize( 3, 80 )
 		self.check_grid.EnableDragColMove( False )
 		self.check_grid.EnableDragColSize( True )
 		self.check_grid.SetColLabelSize( 30 )
-		self.check_grid.SetColLabelValue( 0, u"请求类型" )
-		self.check_grid.SetColLabelValue( 1, u"URL" )
-		self.check_grid.SetColLabelValue( 2, u"问题参数" )
+		self.check_grid.SetColLabelValue( 0, u"线程名称" )
+		self.check_grid.SetColLabelValue( 1, u"请求类型" )
+		self.check_grid.SetColLabelValue( 2, u"URL" )
+		self.check_grid.SetColLabelValue( 3, u"漏洞参数" )
+		self.check_grid.SetColLabelValue( 4, wx.EmptyString )
 		self.check_grid.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Rows
@@ -641,7 +601,7 @@ class XssDetectFrame ( wx.Frame ):
 		"""
 		self.check_grid.AppendRows()
 		rows = self.check_grid.GetNumberRows()
-		for col in range(3):
+		for col in range(4):
 			self.check_grid.SetCellValue(rows-1, col, unicode(result_list[col]))
 
 	def clear_check_grid(self):
