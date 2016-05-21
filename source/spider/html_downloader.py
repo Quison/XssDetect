@@ -5,6 +5,10 @@ import sys
 sys.path.append(r"../comm")
 import authentication_login
 
+#测试请求成功
+#a = authentication_login.LOGIN_SESSION
+#print a.get("http://127.0.0.1/cms/admin/index.php").content
+
 class HtmlDownloader(object):
 
 	def __init__(self):
