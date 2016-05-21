@@ -30,12 +30,21 @@ class HtmlParser(object):
 		url_depth = spider_url.get_depth()
 
 		url_node = lxml_html.xpath(u"//a/@href")
-		for url in url_node:
-			new_url_str = urlparse.urljoin(url_str,url)
+		url_frame = lxml_html.xpath(u"//frame")
+		if url_node:
+			for url in url_node:
+				new_url_str = urlparse.urljoin(url_str,url)
 
-			# 创建一个spider_url，深度为原来的深度加1
-			new_spider_url = SpiderUrl(new_url_str, url_depth+1, "get")
-			spider_url_set.add(new_spider_url)
+				# 创建一个spider_url，深度为原来的深度加1
+				new_spider_url = SpiderUrl(new_url_str, url_depth+1, "get")
+				spider_url_set.add(new_spider_url)
+
+		if url_frame:
+			for url in url_frame:
+				new_url = url.get('src')
+				new_url_str = urlparse.urljoin(url_str,new_url)
+				new_spider_url = SpiderUrl(new_url_str, url_depth+1, "get")
+				spider_url_set.add(new_spider_url)
 
 		return spider_url_set
 
