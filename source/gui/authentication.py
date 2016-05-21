@@ -48,6 +48,32 @@ class Authentication:
 		else:
 			return r.status_code
 
+'''
+	def save_vercode(self,url,payload=None):
+		if os.path.exists('vercode.jpg'):
+			os.remove('vercode.jpg')
+
+		r = requests.get(url,payload)
+		if r.status_code == requests.codes.ok:
+			i = Image.open(StringIO(r.content))
+			i.save('vercode.jpg')
+
+	#改变图片大小  http://blog.csdn.net/zhoujianghai/article/details/7974249
+	def resize_img(self,img_path):  
+		try:
+			img = Image.open(img_path)
+			(width,height) = img.size
+			new_width = 200
+			new_height = height * new_width / width
+			out = img.resize((new_width,new_height),Image.ANTIALIAS)
+			ext = os.path.splitext(img_path)[1]
+			new_file_name = '%s%s' %('new_vercode',ext)
+			out.save(new_file_name,quality=95)
+		except Exception,e:
+			print e 
+'''
+
+
 if __name__ == '__main__':
 	url = "http://www.zhihu.com/captcha.gif?r=1463383349155&type=login"
 	Authentication.get_vercode(url)
