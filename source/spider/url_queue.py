@@ -27,7 +27,6 @@ class UrlQueue(object):
 		self.exclude_urls = CommonUtil.get_dict_value(FileHelper.read_setting_info(), "exclude_url").split()
 		for exclude_url in self.exclude_urls:
 			self.url_filter.add(exclude_url)
-			print exclude_url
 
 		self.domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
 		self.__add_new_url(SpiderUrl(root_url, 0)) 

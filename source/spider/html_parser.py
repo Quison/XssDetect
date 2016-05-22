@@ -59,7 +59,7 @@ class HtmlParser(object):
 		url_str = spider_url.get_url()
 		url_depth = spider_url.get_depth()
 		parameters = ""
-		html_page = fromstring(html_cont.lower().decode('utf-8'))
+		html_page = fromstring(html_cont.lower())
 		for form in html_page.forms:
 			new_url_str = urlparse.urljoin(url_str, form.action)
 			url_method = form.method
