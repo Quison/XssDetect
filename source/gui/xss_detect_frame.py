@@ -23,9 +23,9 @@ sys.path.append(r"../check")
 
 from file_helper import FileHelper
 from common_util import CommonUtil
-from authentication import Authentication
 from spider_main import SpiderMain
 from xss_check_main import CheckMain
+from authentication_login import Login
 
 ###########################################################################
 ## Class XssDetectFrame
@@ -34,10 +34,10 @@ from xss_check_main import CheckMain
 class XssDetectFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,730 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Xss Detector", pos = wx.DefaultPosition, size = wx.Size( 800,750 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		#Fixed MainFrame's Size
-		self.SetMaxSize(wx.Size(800,730))
-		self.SetMinSize(wx.Size(800,730))
+		self.SetMaxSize(wx.Size(800,750))
+		self.SetMinSize(wx.Size(800,750))
 		#show frame at center of windows
 		self.Center()
 
@@ -56,8 +56,8 @@ class XssDetectFrame ( wx.Frame ):
 		logo_bSizer.Fit( self.logo_panel )
 		main_bSizer.Add( self.logo_panel, 3, wx.EXPAND |wx.ALL, 5 )
 		
-		self.m_notebook4 = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.setting_panel = wx.Panel( self.m_notebook4, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_notebook = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.setting_panel = wx.Panel( self.m_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		setting_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.thread_ctrl_panel = wx.Panel( self.setting_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -204,22 +204,16 @@ class XssDetectFrame ( wx.Frame ):
 		
 		self.setting_login_info_ctrl_panel = wx.Panel( setting_login_info_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		settinglogin_bSizer = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.after_login_url_staticText = wx.StaticText( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"after url：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.after_login_url_staticText.Wrap( -1 )
+		settinglogin_bSizer.Add( self.after_login_url_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.vercode_staticText = wx.StaticText( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"验证码链接：", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.vercode_staticText.Wrap( -1 )
-		settinglogin_bSizer.Add( self.vercode_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		self.vercode_url_textCtrl = wx.TextCtrl( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.vercode_url_textCtrl, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
-		self.vercode_bitmap = wx.StaticBitmap( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.vercode_bitmap, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
-		
-		self.get_vercode_button = wx.Button( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"获取验证码", wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.get_vercode_button, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-		
+		self.after_login_url_textCtrl = wx.TextCtrl( self.setting_login_info_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		settinglogin_bSizer.Add( self.after_login_url_textCtrl, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
 		self.login_button = wx.Button( self.setting_login_info_ctrl_panel, wx.ID_ANY, u"登录", wx.DefaultPosition, wx.DefaultSize, 0 )
-		settinglogin_bSizer.Add( self.login_button, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		settinglogin_bSizer.Add( self.login_button, 0, wx.ALL, 5 )
 		
 		
 		self.setting_login_info_ctrl_panel.SetSizer( settinglogin_bSizer )
@@ -233,32 +227,45 @@ class XssDetectFrame ( wx.Frame ):
 		setting_login_info_sbSizer.Fit( self.setting_login_info_panel )
 		setting_bSizer.Add( self.setting_login_info_panel, 5, wx.EXPAND |wx.ALL, 5 )
 		
-		self.setting_payload_panel = wx.Panel( self.setting_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		setting_payload_sbSizer = wx.StaticBoxSizer( wx.StaticBox( self.setting_payload_panel, wx.ID_ANY, u"自定义信息" ), wx.HORIZONTAL )
+		self.setting_other_panel = wx.Panel( self.setting_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		setting_other_sbSizer = wx.StaticBoxSizer( wx.StaticBox( self.setting_other_panel, wx.ID_ANY, u"其他" ), wx.HORIZONTAL )
 		
-		self.setting_payload_text_panel = wx.Panel( setting_payload_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		setting_payload_text_bSizer = wx.BoxSizer( wx.VERTICAL )
+		self.setting_other_text_panel = wx.Panel( setting_other_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		setting_other_text_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
-		self.payload_text_panel = wx.Panel( self.setting_payload_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		payload_text_bSizer = wx.BoxSizer( wx.HORIZONTAL )
+		self.other_text_panel = wx.Panel( self.setting_other_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		other_text_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
-		self.payload_staticText = wx.StaticText( self.payload_text_panel, wx.ID_ANY, u"自定义向量：", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.payload_staticText.Wrap( -1 )
-		payload_text_bSizer.Add( self.payload_staticText, 0, wx.ALL, 5 )
+		self.vercode_link_panel = wx.Panel( self.other_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		vercode_link_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.payload_textCtrl = wx.TextCtrl( self.payload_text_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
-		payload_text_bSizer.Add( self.payload_textCtrl, 1, wx.ALL|wx.EXPAND, 5 )
+		self.vercode_url_staticText = wx.StaticText( self.vercode_link_panel, wx.ID_ANY, u"验证码链接：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.vercode_url_staticText.Wrap( -1 )
+		vercode_link_bSizer.Add( self.vercode_url_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		
+		self.vercode_url_textCtrl = wx.TextCtrl( self.vercode_link_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		vercode_link_bSizer.Add( self.vercode_url_textCtrl, 3, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
-		self.payload_text_panel.SetSizer( payload_text_bSizer )
-		self.payload_text_panel.Layout()
-		payload_text_bSizer.Fit( self.payload_text_panel )
-		setting_payload_text_bSizer.Add( self.payload_text_panel, 3, wx.EXPAND |wx.ALL, 5 )
+		self.vercode_link_panel.SetSizer( vercode_link_bSizer )
+		self.vercode_link_panel.Layout()
+		vercode_link_bSizer.Fit( self.vercode_link_panel )
+		other_text_bSizer.Add( self.vercode_link_panel, 1, wx.EXPAND |wx.ALL, 5 )
 		
-		self.exclude_url_panel = wx.Panel( self.setting_payload_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.vercode_bitmap = wx.StaticBitmap( self.other_text_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		other_text_bSizer.Add( self.vercode_bitmap, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL
+			, 5 )
+		
+		
+		self.other_text_panel.SetSizer( other_text_bSizer )
+		self.other_text_panel.Layout()
+		other_text_bSizer.Fit( self.other_text_panel )
+		setting_other_text_bSizer.Add( self.other_text_panel, 3, wx.EXPAND |wx.ALL, 5 )
+		
+		self.exclude_url_panel = wx.Panel( self.setting_other_text_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		exclude_url_bSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.exclude_url_staticText = wx.StaticText( self.exclude_url_panel, wx.ID_ANY, u"排除的URL(以空格分隔)：", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.exclude_url_staticText = wx.StaticText( self.exclude_url_panel, wx.ID_ANY, u"排除的URL（空格分隔）：", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.exclude_url_staticText.Wrap( -1 )
 		exclude_url_bSizer.Add( self.exclude_url_staticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
@@ -269,49 +276,49 @@ class XssDetectFrame ( wx.Frame ):
 		self.exclude_url_panel.SetSizer( exclude_url_bSizer )
 		self.exclude_url_panel.Layout()
 		exclude_url_bSizer.Fit( self.exclude_url_panel )
-		setting_payload_text_bSizer.Add( self.exclude_url_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		setting_other_text_bSizer.Add( self.exclude_url_panel, 1, wx.EXPAND |wx.ALL, 5 )
 		
 		
-		self.setting_payload_text_panel.SetSizer( setting_payload_text_bSizer )
-		self.setting_payload_text_panel.Layout()
-		setting_payload_text_bSizer.Fit( self.setting_payload_text_panel )
-		setting_payload_sbSizer.Add( self.setting_payload_text_panel, 3, wx.EXPAND |wx.ALL, 5 )
+		self.setting_other_text_panel.SetSizer( setting_other_text_bSizer )
+		self.setting_other_text_panel.Layout()
+		setting_other_text_bSizer.Fit( self.setting_other_text_panel )
+		setting_other_sbSizer.Add( self.setting_other_text_panel, 3, wx.EXPAND |wx.ALL, 5 )
 		
-		self.save_info_panel = wx.Panel( setting_payload_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.save_info_panel = wx.Panel( setting_other_sbSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		save_info_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.save_info_staticText = wx.StaticText( self.save_info_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.save_info_staticText.Wrap( -1 )
 		save_info_bSizer.Add( self.save_info_staticText, 1, wx.ALL, 5 )
 		
-		self.save_payload_button = wx.Button( self.save_info_panel, wx.ID_ANY, u"添加PAYLOAD", wx.DefaultPosition, wx.DefaultSize, 0 )
-		save_info_bSizer.Add( self.save_payload_button, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		self.get_vercode_button = wx.Button( self.save_info_panel, wx.ID_ANY, u"获取验证码", wx.DefaultPosition, wx.DefaultSize, 0 )
+		save_info_bSizer.Add( self.get_vercode_button, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		
 		self.save_info_staticText1 = wx.StaticText( self.save_info_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.save_info_staticText1.Wrap( -1 )
 		save_info_bSizer.Add( self.save_info_staticText1, 1, wx.ALL, 5 )
 		
-		self.m_button6 = wx.Button( self.save_info_panel, wx.ID_ANY, u"保存系统设置", wx.DefaultPosition, wx.DefaultSize, 0 )
-		save_info_bSizer.Add( self.m_button6, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		self.save_info_button = wx.Button( self.save_info_panel, wx.ID_ANY, u"保存系统设置", wx.DefaultPosition, wx.DefaultSize, 0 )
+		save_info_bSizer.Add( self.save_info_button, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.save_info_panel.SetSizer( save_info_bSizer )
 		self.save_info_panel.Layout()
 		save_info_bSizer.Fit( self.save_info_panel )
-		setting_payload_sbSizer.Add( self.save_info_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		setting_other_sbSizer.Add( self.save_info_panel, 1, wx.EXPAND |wx.ALL, 5 )
 		
 		
-		self.setting_payload_panel.SetSizer( setting_payload_sbSizer )
-		self.setting_payload_panel.Layout()
-		setting_payload_sbSizer.Fit( self.setting_payload_panel )
-		setting_bSizer.Add( self.setting_payload_panel, 3, wx.EXPAND |wx.ALL, 5 )
+		self.setting_other_panel.SetSizer( setting_other_sbSizer )
+		self.setting_other_panel.Layout()
+		setting_other_sbSizer.Fit( self.setting_other_panel )
+		setting_bSizer.Add( self.setting_other_panel, 3, wx.EXPAND |wx.ALL, 5 )
 		
 		
 		self.setting_panel.SetSizer( setting_bSizer )
 		self.setting_panel.Layout()
 		setting_bSizer.Fit( self.setting_panel )
-		self.m_notebook4.AddPage( self.setting_panel, u"系统设置", True )
-		self.spider_panel = wx.Panel( self.m_notebook4, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_notebook.AddPage( self.setting_panel, u"系统设置", True )
+		self.spider_panel = wx.Panel( self.m_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		spider_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.spider_ctrl_panel = wx.Panel( self.spider_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -386,8 +393,8 @@ class XssDetectFrame ( wx.Frame ):
 		self.spider_panel.SetSizer( spider_bSizer )
 		self.spider_panel.Layout()
 		spider_bSizer.Fit( self.spider_panel )
-		self.m_notebook4.AddPage( self.spider_panel, u"网络爬虫", False )
-		self.check_panel = wx.Panel( self.m_notebook4, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_notebook.AddPage( self.spider_panel, u"网络爬虫", False )
+		self.check_panel = wx.Panel( self.m_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		check_bSizer = wx.BoxSizer( wx.VERTICAL )
 		
 		self.check_ctrl_panel = wx.Panel( self.check_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -458,9 +465,9 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_panel.SetSizer( check_bSizer )
 		self.check_panel.Layout()
 		check_bSizer.Fit( self.check_panel )
-		self.m_notebook4.AddPage( self.check_panel, u"XSS 检测", False )
+		self.m_notebook.AddPage( self.check_panel, u"XSS 检测", False )
 		
-		main_bSizer.Add( self.m_notebook4, 3, wx.EXPAND |wx.ALL, 5 )
+		main_bSizer.Add( self.m_notebook, 3, wx.EXPAND |wx.ALL, 5 )
 		
 		
 		self.SetSizer( main_bSizer )
@@ -474,13 +481,13 @@ class XssDetectFrame ( wx.Frame ):
 		self.check_thread_num_slider.Bind( wx.EVT_SCROLL, self.OnCheckThreadNumScroll )
 		self.get_vercode_button.Bind( wx.EVT_BUTTON, self.OnGetVercodeButtonClick )
 		self.login_button.Bind( wx.EVT_BUTTON, self.OnLoginButtonClick )
-		self.save_payload_button.Bind( wx.EVT_BUTTON, self.OnSavePayloadButtonClick )
-		self.m_button6.Bind( wx.EVT_BUTTON, self.OnSaveSettingInfoButtonClick )
+		self.save_info_button.Bind( wx.EVT_BUTTON, self.OnSaveSettingInfoButtonClick )
 		self.start_crawling_button.Bind( wx.EVT_BUTTON, self.OnBeginCrawlingButtonClick )
 		self.start_check_button.Bind( wx.EVT_BUTTON, self.OnBeginCheckButtonClick )
 
 		# 填写初始配置信息
 		self.init_setting();
+		self.login = Login()
 	
 	def __del__( self ):
 		pass
@@ -496,14 +503,41 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnGetVercodeButtonClick( self, event ):
+		vercode_url = self.vercode_url_textCtrl.GetValue()
+		# 如果为空
+		if vercode_url == '':
+			self.confirm_dialog(u"请填写验证码的链接！")
+			return
+
+		response_code = self.login.save_vercode(vercode_url)
+		if response_code == 200:
+			img = wx.Image("images/vercode.png", wx.BITMAP_TYPE_ANY)
+			self.vercode_bitmap.SetBitmap(wx.BitmapFromImage(img))
+
+		else:
+			self.confirm_dialog(u"获取验证码错误！" + str(response_code))
+
 		event.Skip()
 	
 	def OnLoginButtonClick( self, event ):
 		# 将登录界面的信息保存到配置信息
 		FileHelper.write_setting_info(self.get_setting_info())
 
+		# 读取配置文件
+		adict = FileHelper.read_setting_info()
+
+		# 构造post的数据
+		data = {}
+		data[CommonUtil.get_dict_value(adict, "username_key")] = CommonUtil.get_dict_value(adict, "username_value")
+		data[CommonUtil.get_dict_value(adict, "password_key")] = CommonUtil.get_dict_value(adict, "password_value")
+		data[CommonUtil.get_dict_value(adict, "vercode_key")] = CommonUtil.get_dict_value(adict, "vercode_value")
+
+		# 获取登陆连接
+		login_url = CommonUtil.get_dict_value(adict, "login_url")
+		after_login_url = CommonUtil.get_dict_value(adict, "after_login_url")
+
 		# 登录
-		return_content = Authentication.login()
+		return_content = self.login.do_login(login_url, data, after_login_url)
 
 		# 判断登录是否成功（返回则字典成功）
 		if isinstance(return_content, int):
@@ -518,12 +552,6 @@ class XssDetectFrame ( wx.Frame ):
 
 		event.Skip()
 	
-	def OnSavePayloadButtonClick( self, event ):
-		payload_content = self.payload_textCtrl.GetValue()
-		FileHelper.write_payload(payload_content)
-		self.confirm_dialog(u"保存PAYLOAD成功！")
-		event.Skip()
-	
 	def OnSaveSettingInfoButtonClick( self, event ):
 		setting_info_dict = self.get_setting_info()
 		FileHelper.write_setting_info(setting_info_dict)
@@ -531,6 +559,10 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnBeginCrawlingButtonClick( self, event ):
+		# 首先保存配置信息
+		setting_info_dict = self.get_setting_info()
+		FileHelper.write_setting_info(setting_info_dict)
+		
 		spider_thread_num = self.spider_thread_num_slider.GetValue()
 		crawl_depth = self.crawl_depth_textCtrl.GetValue()
 		# 获取爬虫需要的信息
@@ -652,6 +684,7 @@ class XssDetectFrame ( wx.Frame ):
 		vercode_value = self.vercode_value_textCtr.GetValue()
 		vercode_url = self.vercode_url_textCtrl.GetValue()
 		exclude_url = self.exclude_url_textCtrl.GetValue()
+		after_login_url = self.after_login_url_textCtrl.GetValue()
 
 		# 放到字典中
 		setting_info_dict = {}
@@ -667,6 +700,7 @@ class XssDetectFrame ( wx.Frame ):
 		setting_info_dict["vercode_value"] = vercode_value
 		setting_info_dict["vercode_url"] = vercode_url
 		setting_info_dict["exclude_url"] = exclude_url
+		setting_info_dict["after_login_url"] = after_login_url
 
 		return setting_info_dict
 
@@ -679,6 +713,7 @@ class XssDetectFrame ( wx.Frame ):
 		"""
 		将配置文件中的信息写到界面上
 		"""
+
 		# 设置配置信息
 		adict = FileHelper.read_setting_info()
 
@@ -693,9 +728,9 @@ class XssDetectFrame ( wx.Frame ):
 		check_thread_num = CommonUtil.get_dict_value(adict, "check_thread_num")
 		if(check_thread_num == ""):
 			check_thread_num = "10"
+
 		self.check_thread_num_slider.SetValue(int(check_thread_num))
 		self.m_staticText_check_unit.SetLabel(check_thread_num)
-
 		self.login_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "login_url"))
 		self.cookie_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "cookie"))
 		self.username_key_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "username_key"))
@@ -706,12 +741,4 @@ class XssDetectFrame ( wx.Frame ):
 		self.vercode_value_textCtr.SetValue(CommonUtil.get_dict_value(adict, "vercode_value"))
 		self.vercode_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "vercode_url"))
 		self.exclude_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "exclude_url"))
-
-		# 设置payload
-		payload_content = FileHelper.read_payload()
-		self.payload_textCtrl.SetValue("\n".join(payload_content))
-
-
-
-
-
+		self.after_login_url_textCtrl.SetValue(CommonUtil.get_dict_value(adict, "after_login_url"))

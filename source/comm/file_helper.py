@@ -52,7 +52,7 @@ class FileHelper:
 		f = open(FileHelper._CONFIG_FILE)
 		setting_info_dict = {}
 		for line in f:
-			lst = line.split("=")
+			lst = line.split("=", 1)
 			setting_info_dict[lst[0]] = lst[1].strip() if len(lst) == 2 else ""
 		f.close()
 		return setting_info_dict

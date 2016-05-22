@@ -1,9 +1,14 @@
 #_*_coding:utf-8_*_
 
+import sys
 import Queue
 import re
 
+sys.path.append(r"../comm")
+
 from spider_url import SpiderUrl
+from common_util import CommonUtil
+from file_helper import FileHelper
 
 class UrlQueue(object):
 	"""
@@ -17,9 +22,15 @@ class UrlQueue(object):
 		self.url_filter = set()
 		# 已爬取过的url
 		self.old_urls = set()
-		# 初始化
-		self.url_queue.put(SpiderUrl(root_url, 0))
+
+		# 读取配置文件中被排除的url
+		self.exclude_urls = CommonUtil.get_dict_value(FileHelper.read_setting_info(), "exclude_url").split()
+		for exclude_url in self.exclude_urls:
+			self.url_filter.add(exclude_url)
+			print exclude_url
+
 		self.domain = re.match(r"^(http(s)?://)?([\w-]+\.)+[\w-]+/?",root_url,re.M|re.I).group()
+		self.__add_new_url(SpiderUrl(root_url, 0)) 
 
 	def __add_new_url(self, spider_url):
 		"""
