@@ -134,6 +134,8 @@ class SpiderMain:
 		"""
 		停止
 		"""
+		self.frame.start_crawling_button.SetLabel(u"正在停止")
+		self.frame.start_crawling_button.Enable(False)
 		SpiderMain.stoped = True
 
 	def all_is_done(self):
@@ -154,9 +156,10 @@ class SpiderMain:
 			if self.all_is_done():
 				break
 		if self.frame is not None:
+			self.frame.start_crawling_button.Enable(True)
+			self.frame.start_crawling_button.SetLabel(u"开始爬取")
 			self.frame.confirm_dialog(u"爬取完成！")
-			if self.frame.start_crawling_button.GetLabel() == u"暂停爬取":
-				self.frame.start_crawling_button.SetLabel(u"开始爬取")
+			
 		else:
 			print u"所有线程都完成工作。。。"
 

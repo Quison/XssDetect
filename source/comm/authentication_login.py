@@ -52,7 +52,7 @@ class Login(object):
 
 
 
-
+'''
 url = "http://127.0.0.1/cms/admin/login.action.php"
 para = "username=admin&password=123456"
 
@@ -61,7 +61,7 @@ login = Login()
 param = login.modify_paramter(para)
 login.do_login(url,param)
 
-'''
+
 r = LOGIN_SESSION.get("http://127.0.0.1/cms/admin/index.php")
 print r.text
 

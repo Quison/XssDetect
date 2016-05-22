@@ -87,8 +87,11 @@ class CheckMain(object):
 		# 从数据库中查数据
 		self.sql_worker = Sqlite3Worker("../config/spiderurls.db")
 		CheckMain.spiderurls = self.sql_worker.execute("SELECT method,url,param from spiderurls")
-
 	def checking(self):
+		# 如果数据库为空那么直接结束
+		if len(CheckMain.spiderurls) <= 0:
+			self.frame.confirm_dialog(u"数据库为空，请先爬取数据！")
+			return 
 		for i in range(self.thread_num):
 			t = XssCheckThread("Thread-"+str(i+1), self.frame, self.lock)
 			self.threads.append(t)

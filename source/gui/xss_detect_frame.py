@@ -322,7 +322,6 @@ class XssDetectFrame ( wx.Frame ):
 		spider_ctrl_bSizer.Add( self.seed_url_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		self.seed_url_text = wx.TextCtrl( self.spider_ctrl_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.seed_url_text.SetValue("http://www.cnblogs.com/hongten/p/hongten_python_sqlite3.html")
 		spider_ctrl_bSizer.Add( self.seed_url_text, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.crawl_depth_staticText = wx.StaticText( self.spider_ctrl_panel, wx.ID_ANY, u"爬取深度：", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -533,12 +532,29 @@ class XssDetectFrame ( wx.Frame ):
 	
 	def OnBeginCrawlingButtonClick( self, event ):
 		spider_thread_num = self.spider_thread_num_slider.GetValue()
+		crawl_depth = self.crawl_depth_textCtrl.GetValue()
+		# 获取爬虫需要的信息
+		root_url = self.seed_url_text.GetValue()
+
 		if self.start_crawling_button.GetLabel() == u"开始爬取":
+			if spider_thread_num <= 0:
+				self.confirm_dialog(u"请正确设置爬虫线程数量（测试推荐5~10）")
+				return 
+
+			# 如果种子连接为空提示
+			if not root_url:
+				self.confirm_dialog(u"请输入种子链接！")
+				return
+			# 判断是否符合条件
+			elif not crawl_depth.isdigit():
+				self.confirm_dialog(u"请正确设置爬虫的爬取深度（测试推荐2~4）")
+				return 
+			elif int(crawl_depth) <= 0:
+				self.confirm_dialog(u"请正确设置爬虫的爬取深度（测试推荐2~4）")
+				return
+
 			self.start_crawling_button.SetLabel(u"暂停爬取")
 
-			# 获取爬虫需要的信息
-			root_url = self.seed_url_text.GetValue()
-			crawl_depth = self.crawl_depth_textCtrl.GetValue()
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
 
