@@ -20,8 +20,8 @@ class HtmlDownloader(object):
 		if url is None:
 			return None
 		try:
-#			r = requests.get(url,headers=headers,timeout=timeout)
-			r = authentication_login.LOGIN_SESSION.get(url,headers=headers,timeout=timeout)
+			r = requests.get(url,headers=headers,timeout=timeout)
+#			r = authentication_login.LOGIN_SESSION.get(url,headers=headers,timeout=timeout)
 			if r.status_code == requests.codes.ok:
 				return r.content	
 		except Exception, e:
