@@ -19,7 +19,7 @@ class SpiderThread(threading.Thread):
 	爬虫的线程类
 	"""
 
-	def __init__(self, name, frame, url_queue, con, outputer, crawl_depth):
+	def __init__(self, name, frame, url_queue, con, outputer, crawl_depth, login_session):
 
 		threading.Thread.__init__(self)
 		# 线程名
@@ -34,6 +34,7 @@ class SpiderThread(threading.Thread):
 		self.url_queue = url_queue
 		self.con = con
 		self.crawl_depth = crawl_depth
+		self.login_session = login_session
 
 		self.timeout = 3
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
@@ -56,7 +57,7 @@ class SpiderThread(threading.Thread):
 
 						spider_url = self.url_queue.get()
 						# 下载
-						html_cont = self.downloader.download(spider_url, headers=self.headers, timeout=self.timeout)	
+						html_cont = self.downloader.download(spider_url, headers=self.headers, timeout=self.timeout, login_session=self.login_session)	
 						# 将解析得的url放入带爬取链接队列中深度已经+1
 						spider_url_set = self.parser.parse(spider_url,html_cont)
 						
@@ -102,7 +103,7 @@ class SpiderMain:
 	爬虫的控制主类
 	"""
 
-	def __init__(self, frame, root_url, thread_num, crawl_depth):
+	def __init__(self, frame, root_url, thread_num, crawl_depth, login_session):
 		self.frame = frame
 		self.root_url = root_url
 		self.crawl_depth = crawl_depth
@@ -115,6 +116,7 @@ class SpiderMain:
 		self.url_queue = UrlQueue(root_url)
 		self.outputer = html_outputer.HtmlOutputer()
 		self.crawl_depth = crawl_depth
+		self.login_session = login_session
 
 		self.threads = []
 		
@@ -123,7 +125,7 @@ class SpiderMain:
 		初始化线程爬取
 		"""
 		for x in range(SpiderMain.thread_num):
-			t = SpiderThread("Thread-"+str(x+1), self.frame, self.url_queue, self.con, self.outputer, self.crawl_depth)
+			t = SpiderThread("Thread-"+str(x+1), self.frame, self.url_queue, self.con, self.outputer, self.crawl_depth, self.login_session)
 			self.threads.append(t)
 			t.start()
 
