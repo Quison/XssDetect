@@ -15,7 +15,7 @@ import wx
 from sqlite3worker import Sqlite3Worker
 
 import requests, re, urllib, random, string, urllib2
-
+import authentication_login
 
 
 PREFIX_SUFFIX_LENGTH = 5
@@ -48,17 +48,34 @@ class XssCheck(object):
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 		self.timeout = 2
 
-	# 请求url，返回网页源码
+	def modify_paramter(self,paramter):
+		paramter_dict = {}
+		paramter_list = paramter.split('&')
+		map(lambda x:paramter_dict.setdefault(x.split('=')[0], x.split('=')[1]), paramter_list)
+		return paramter_dict
+
+
 	def _retrieve_content(self, url, data=None):
-		# 把url里面的空格进行urlencode
 		new_url = "".join(url[i].replace(' ', "%20") if i > url.find('?') else url[i] for i in xrange(len(url)))
-		#data = urllib.urlencode(data) if data else ""
-		try:
-			req = urllib2.Request(new_url, data, self.headers)
-			retval = urllib2.urlopen(req, timeout=self.timeout).read()
-		except Exception, ex:
-			retval = ex.read() if hasattr(ex, "read") else getattr(ex, "msg", str())
-		return retval or ""
+		if data is not None:
+			data = self.modify_paramter(data)
+			try:
+				r = authentication_login.LOGIN_SESSION.post(url,data)
+				if r.status_code == requests.codes.ok:
+					retval = r.text
+			except Exception, ex:
+				retval = ex.read() if hasattr(ex, "read") else getattr(ex, "msg", str())
+
+		else:
+			try:
+				r = authentication_login.LOGIN_SESSION.get(url)
+				if r.status_code == requests.codes.ok:
+					retval = r.text
+			except Exception, ex:
+				retval = ex.read() if hasattr(ex, "read") else getattr(ex, "msg", str())
+		
+		return urllib.unquote(retval) or ""
+
 
 	# 判断 chars 是否为 content 的子集
 	def _contains(self, content, chars):
@@ -132,11 +149,28 @@ class XssCheck(object):
 		sql_worker.close()
 
 '''
+	# 请求url，返回网页源码
+	def _retrieve_content(self, url, data=None):
+		# 把url里面的空格进行urlencode
+		new_url = "".join(url[i].replace(' ', "%20") if i > url.find('?') else url[i] for i in xrange(len(url)))
+		#data = urllib.urlencode(data) if data else ""
+		try:
+			req = urllib2.Request(new_url, data, self.headers)
+			retval = urllib2.urlopen(req, timeout=self.timeout).read()
+		except Exception, ex:
+			retval = ex.read() if hasattr(ex, "read") else getattr(ex, "msg", str())
+		return retval or ""
+'''
+
+'''
 声明对象，然后循环两次取出数据，返回Tuple(method,url,parameter)
+
 xc = XssCheck()
 q = xc.xss_check_main()
 for x in q:
 	for a in x:
 		print a
+
+
 '''
 

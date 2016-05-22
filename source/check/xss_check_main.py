@@ -42,20 +42,27 @@ class XssCheckThread(threading.Thread):
 				url = spiderurl[1]
 				param = spiderurl[2]
 				self.frame.checking_url_staticText.SetLabel(unicode(url))
+
+				# DOM XSS 检测
+				for result_tuple in self.xss_check.do_dom_xss_check(url):
+					self.print_result(result_tuple)
+
+				# GET XSS 检测
 				if method is not None and (method.lower() == 'get'):
 					# 测试打印对接
-					self.print_result(spiderurl)
+					#self.print_result(spiderurl)
 
-					#for result_tuple in self.xss_check.do_xss_check(url):
-					#	self.print_result(result_tuple)
+					for result_tuple in self.xss_check.do_xss_check(url):
+						self.print_result(result_tuple)
+				
 				elif (method is not None) and (method.lower() == 'post'):
 					# 测试打印对接
-					self.print_result(spiderurl)
+					#self.print_result(spiderurl)
 
-					#if param is None:
-					#	locktinue
-					#for result_tuple in self.xss_check.do_xss_check(url, param):
-					#	self.print_result(result_tuple)
+					if param is None:
+						locktinue
+					for result_tuple in self.xss_check.do_xss_check(url, param):
+						self.print_result(result_tuple)
 
 	def print_result(self, result_tuple):
 		result_list = [self.getName()]
@@ -111,7 +118,7 @@ class CheckMain(object):
 			if self.all_is_done():
 				break
 		if self.frame is not None:
-			self.frame.confirm_dialog(u"爬取完成！")
+			self.frame.confirm_dialog(u"检测完成！")
 			if self.frame.start_check_button.GetLabel() == u"暂停检测":
 				self.frame.start_check_button.SetLabel(u"开始检测")
 		else:

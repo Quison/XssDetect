@@ -3,6 +3,8 @@ import requests
 from PIL import Image
 import os
 
+global LOGIN_SESSION
+
 class Login(object):
 
 	def __init__(self):
@@ -10,14 +12,14 @@ class Login(object):
 		self.timeout = 2
 
 	# 
-	def do_login(self,url_befor,data,url_after):
+	def do_login(self,url_befor,data):
 		req = requests.session()
-		req.post(url,data)
+		req.post(url_befor,data)
 		global LOGIN_SESSION
 		LOGIN_SESSION = req
-		r = requests.get(url_after)
-		if r.status_code == requests.codes.ok:
-			return True
+#		r = requests.get(url_after)
+#		if r.status_code == requests.codes.ok:
+#			return True
 
 	def modify_paramter(self,paramter):
 		paramter_dict = {}
@@ -59,5 +61,8 @@ login = Login()
 param = login.modify_paramter(para)
 login.do_login(url,param)
 
+'''
 r = LOGIN_SESSION.get("http://127.0.0.1/cms/admin/index.php")
 print r.text
+
+'''
