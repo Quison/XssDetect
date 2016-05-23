@@ -41,6 +41,8 @@ class SpiderThread(threading.Thread):
 
 	def run(self):
 		while 1:
+			print "空闲",SpiderMain.wait_thread_num
+			print "空",self.url_queue.is_empty()
 			if SpiderMain.stoped:
 				break			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
@@ -171,8 +173,8 @@ class SpiderMain:
 
 if __name__ == '__main__':
 	root_url = "http://127.0.0.1/cms/"
-	crawl_depth = 2
-	thread_num = 5
+	crawl_depth = 43
+	thread_num = 1
 	con = threading.Condition()
-	spider_main = SpiderMain(None, root_url, thread_num, crawl_depth)
+	spider_main = SpiderMain(None, root_url, thread_num, crawl_depth, None)
 	spider_main.crawling()

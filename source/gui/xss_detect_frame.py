@@ -487,8 +487,7 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
-		# 一个login实例
-		self.login = Login()
+		self.login_session = None
 	
 	def __del__( self ):
 		pass
@@ -521,6 +520,8 @@ class XssDetectFrame ( wx.Frame ):
 		event.Skip()
 	
 	def OnLoginButtonClick( self, event ):
+		# 一个login实例
+		self.login = Login()
 		# 将登录界面的信息保存到配置信息
 		FileHelper.write_setting_info(self.get_setting_info())
 
@@ -540,6 +541,7 @@ class XssDetectFrame ( wx.Frame ):
 		if self.login_button.GetLabel() == u"登录":
 			# 登录
 			login_success,return_content = self.login.do_login(login_url, data, after_login_url)
+			self.login_session = self.login.get_login_session()
 
 			# 如果登录成功
 			if login_success:
@@ -549,10 +551,11 @@ class XssDetectFrame ( wx.Frame ):
 			else:
 				self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
 
-		elif self.login_button.GetLabel == u"登出":
-			print u"登出"
+		elif self.login_button.GetLabel() == u"登出":
 			self.login_button.SetLabel(u"登录")
 			self.login.do_logout()
+			self.login_session = self.login.get_login_session()
+			self.confirm_dialog(u"登出成功！")
 
 
 		FileHelper.write_setting_info(self.get_setting_info())
@@ -597,7 +600,7 @@ class XssDetectFrame ( wx.Frame ):
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
 
-			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth), self.login.get_login_session())
+			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth), self.login_session)
 			self.spider_main.crawling()
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
@@ -613,7 +616,7 @@ class XssDetectFrame ( wx.Frame ):
 			self.start_check_button.SetLabel(u"暂停检测")
 			# 如果当前状态是终止检测的状态，清空表
 			self.clear_check_grid()
-			self.check_main = CheckMain(self, check_thread_num, self.login.get_login_session())
+			self.check_main = CheckMain(self, check_thread_num, self.login_session)
 			self.check_main.checking()
 
 
