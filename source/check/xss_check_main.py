@@ -15,12 +15,12 @@ sys.setdefaultencoding( "utf-8" )
 
 class XssCheckThread(threading.Thread):
 	
-	def __init__(self, name, frame, lock):
+	def __init__(self, name, frame, lock, login_session):
 		threading.Thread.__init__(self)
 		self.name = name
 		self.stoped = False
 		self.frame = frame
-		self.xss_check = XssCheck()
+		self.xss_check = XssCheck(login_session)
 		self.lock = lock
 
 	def run(self):
@@ -77,12 +77,13 @@ class CheckMain(object):
 	"""
 	检测多线程调度类
 	"""
-	def __init__(self, frame, thread_num):
+	def __init__(self, frame, thread_num, login_session):
 		self.frame = frame
 		self.thread_num = thread_num
 		CheckMain.stoped = False
 		self.threads = []
 		self.lock = threading.Lock()
+		self.login_session = login_session
 
 		# 从数据库中查数据
 		self.sql_worker = Sqlite3Worker("../config/spiderurls.db")
@@ -93,7 +94,7 @@ class CheckMain(object):
 			self.frame.confirm_dialog(u"数据库为空，请先爬取数据！")
 			return 
 		for i in range(self.thread_num):
-			t = XssCheckThread("Thread-"+str(i+1), self.frame, self.lock)
+			t = XssCheckThread("Thread-"+str(i+1), self.frame, self.lock, self.login_session)
 			self.threads.append(t)
 			t.start()
 

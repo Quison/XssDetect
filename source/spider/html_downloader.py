@@ -15,13 +15,17 @@ class HtmlDownloader(object):
 		pass
 
 
-	def download(self, spider_url, headers,timeout):
+	def download(self, spider_url, headers, timeout, login_session=None):
 		url = spider_url.get_url()
 		if url is None:
 			return None
 		try:
-			r = requests.get(url,headers=headers,timeout=timeout)
-#			r = authentication_login.LOGIN_SESSION.get(url,headers=headers,timeout=timeout)
+			#如果登录的session为None则使用原库的requests请求
+			r = None
+			if login_session is None:
+				r = requests.get(url,headers=headers,timeout=timeout)
+			else:
+				r = login_session.get(url,headers=headers,timeout=timeout)
 			if r.status_code == requests.codes.ok:
 				return r.content	
 		except Exception, e:

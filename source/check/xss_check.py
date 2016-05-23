@@ -43,10 +43,11 @@ REGULAR_PATTERNS = (
 
 class XssCheck(object):
 
-	def __init__(self):
+	def __init__(self, login_session):
 		
 		self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'}
 		self.timeout = 2
+		self.login_session = login_session
 
 	def modify_paramter(self,paramter):
 		paramter_dict = {}
@@ -60,7 +61,11 @@ class XssCheck(object):
 		if data is not None:
 			data = self.modify_paramter(data)
 			try:
-				r = authentication_login.LOGIN_SESSION.post(url,data)
+				r = None
+				if self.login_session is None:
+					r = requests.post(url,data)
+				else:
+					r = self.login_session.post(url,data)
 				if r.status_code == requests.codes.ok:
 					retval = r.text
 			except Exception, ex:
@@ -68,7 +73,11 @@ class XssCheck(object):
 
 		else:
 			try:
-				r = authentication_login.LOGIN_SESSION.get(url)
+				r = None
+				if self.login_session is None:
+					r = requests.get(url,data)
+				else:
+					r = self.login_session.get(url,data)
 				if r.status_code == requests.codes.ok:
 					retval = r.text
 			except Exception, ex:
@@ -113,7 +122,7 @@ class XssCheck(object):
 			return
 
 	# dom xss 检测
-	def do_dom_xss_check(self,url):
+	def do_dom_xss_check(self, url):
 		phase = "DOM"
 		url = re.sub(r"=(&|\Z)", "=1\g<1>", url) if url else url
 		content = requests.get(url).text

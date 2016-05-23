@@ -487,6 +487,7 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
+		# 一个login实例
 		self.login = Login()
 	
 	def __del__( self ):
@@ -536,19 +537,25 @@ class XssDetectFrame ( wx.Frame ):
 		login_url = CommonUtil.get_dict_value(adict, "login_url")
 		after_login_url = CommonUtil.get_dict_value(adict, "after_login_url")
 
-		# 登录
-		return_content = self.login.do_login(login_url, data, after_login_url)
+		if self.login_button.GetLabel() == u"登录":
+			# 登录
+			login_success,return_content = self.login.do_login(login_url, data, after_login_url)
 
-		# 判断登录是否成功（返回则字典成功）
-		if isinstance(return_content, int):
-			self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
+			# 如果登录成功
+			if login_success:
+				self.cookie_textCtrl.SetValue(unicode(return_content))
+				self.confirm_dialog(u"登录成功！")
+				self.login_button.SetLabel(u"登出")
+			else:
+				self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
 
-		# 讲gookie回写到配置界面中
-		elif isinstance(return_content, dict):
-			self.cookie_textCtrl.SetValue(unicode(return_content))
-			self.confirm_dialog(u"登录成功！")
-			# 将登录界面的信息保存到配置信息
-			FileHelper.write_setting_info(self.get_setting_info())
+		elif self.login_button.GetLabel == u"登出":
+			print u"登出"
+			self.login_button.SetLabel(u"登录")
+			self.login.do_logout()
+
+
+		FileHelper.write_setting_info(self.get_setting_info())
 
 		event.Skip()
 	
@@ -590,7 +597,7 @@ class XssDetectFrame ( wx.Frame ):
 			# 如果当前状态是终止检测的状态，清空表 ,重置爬取的url数据
 			self.clear_spider_grid()
 
-			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth))
+			self.spider_main = SpiderMain(self, root_url, int(spider_thread_num), int(crawl_depth), self.login.get_login_session())
 			self.spider_main.crawling()
 
 		elif self.start_crawling_button.GetLabel() == u"暂停爬取":
@@ -606,7 +613,7 @@ class XssDetectFrame ( wx.Frame ):
 			self.start_check_button.SetLabel(u"暂停检测")
 			# 如果当前状态是终止检测的状态，清空表
 			self.clear_check_grid()
-			self.check_main = CheckMain(self,check_thread_num)
+			self.check_main = CheckMain(self, check_thread_num, self.login.get_login_session())
 			self.check_main.checking()
 
 

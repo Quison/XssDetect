@@ -4,29 +4,30 @@ from PIL import Image
 import os
 from StringIO import StringIO
 
-global LOGIN_SESSION
-
 class Login(object):
 
 	def __init__(self):
 		self.headers = {'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'}
 		self.timeout = 2
+		self.login_session = requests.session()
 
 	# 
 	def do_login(self,url_befor, data, url_after):
-		req = requests.session()
-		r = req.post(url_befor,data)
-		global LOGIN_SESSION
-		LOGIN_SESSION = req
+		# 不管成不成功都会有一个只
+		self.login_session.post(url_befor,data)
 
-		#r = requests.get(url_after)
+		r = self.login_session.get(url_after)
 		
+		# 登录成功则不处理
 		if r.status_code == requests.codes.ok:
-			#return True
-			# 返回cookie
-			return requests.utils.dict_from_cookiejar(req.cookies)
+			self.login_session
+			# 返回登录成功，且返回cookie
+			return True,requests.utils.dict_from_cookiejar(self.login_session.cookies)
 		else:
-			return r.status_code
+			#登录失败，把self.login_session设为None
+			self.login_session = None
+			# 返回失败，且返回错误码
+			return False,r.status_code
 
 	def modify_paramter(self,paramter):
 		paramter_dict = {}
@@ -58,6 +59,13 @@ class Login(object):
 			out.save(new_file_name,quality=95)
 		except Exception,e:
 			print e 
+
+
+	def get_login_session(self):
+		return self.login_session;
+
+	def do_logout(self):
+		self.login_session = None
 
 
 
