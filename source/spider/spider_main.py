@@ -173,8 +173,8 @@ class SpiderMain:
 
 if __name__ == '__main__':
 	root_url = "http://127.0.0.1/cms/"
-	crawl_depth = 43
-	thread_num = 1
+	crawl_depth = 4
+	thread_num = 5
 	con = threading.Condition()
 	spider_main = SpiderMain(None, root_url, thread_num, crawl_depth, None)
 	spider_main.crawling()
