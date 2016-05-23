@@ -487,8 +487,7 @@ class XssDetectFrame ( wx.Frame ):
 
 		# 填写初始配置信息
 		self.init_setting();
-		# 一个login实例
-		self.login = Login()
+		
 	
 	def __del__( self ):
 		pass
@@ -537,6 +536,10 @@ class XssDetectFrame ( wx.Frame ):
 		login_url = CommonUtil.get_dict_value(adict, "login_url")
 		after_login_url = CommonUtil.get_dict_value(adict, "after_login_url")
 
+		print data
+		# 一个login实例
+		self.login = Login()
+
 		if self.login_button.GetLabel() == u"登录":
 			# 登录
 			login_success,return_content = self.login.do_login(login_url, data, after_login_url)
@@ -547,7 +550,7 @@ class XssDetectFrame ( wx.Frame ):
 				self.confirm_dialog(u"登录成功！")
 				self.login_button.SetLabel(u"登出")
 			else:
-				self.confirm_dialog(unicode("登录失败:" + str(return_content) + "\n请重试！"))
+				self.confirm_dialog(unicode("登录失败" + "\n请重试！"))
 
 		elif self.login_button.GetLabel == u"登出":
 			print u"登出"

@@ -16,10 +16,10 @@ class Login(object):
 		# 不管成不成功都会有一个只
 		self.login_session.post(url_befor,data)
 
-		r = self.login_session.get(url_after)
+		r = self.login_session.get(url_after,allow_redirects=False)
 		
 		# 登录成功则不处理
-		if r.status_code == requests.codes.ok:
+		if r.status_code != 302:
 			self.login_session
 			# 返回登录成功，且返回cookie
 			return True,requests.utils.dict_from_cookiejar(self.login_session.cookies)
@@ -69,17 +69,15 @@ class Login(object):
 
 
 
+
 '''
 url = "http://127.0.0.1/cms/admin/login.action.php"
-para = "username=admin&password=123456"
+#para = "username=admin&password=123456"
+para = {'username': 'admin', 'image.x': '30','image.y':'40', 'password': '123456'}
+url_after = "http://127.0.0.1/cms/admin/index.php"
 
-
-login = Login()
-param = login.modify_paramter(para)
-login.do_login(url,param)
-
-
-r = LOGIN_SESSION.get("http://127.0.0.1/cms/admin/index.php")
-print r.text
-
+#r = requests.post(url,para,allow_redirects=False)
+rr = requests.get("http://127.0.0.1/cms/admin/index.php",allow_redirects=False)
+if rr.status_code != 302:
+	print rr.status_code
 '''
