@@ -486,7 +486,7 @@ class XssDetectFrame ( wx.Frame ):
 		self.start_check_button.Bind( wx.EVT_BUTTON, self.OnBeginCheckButtonClick )
 
 		# 填写初始配置信息
-		self.init_setting();
+		self.init_setting()
 		self.login_session = None
 	
 	def __del__( self ):
