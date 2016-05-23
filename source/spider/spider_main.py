@@ -108,7 +108,6 @@ class SpiderMain:
 	def __init__(self, frame, root_url, thread_num, crawl_depth, login_session):
 		self.frame = frame
 		self.root_url = root_url
-		self.crawl_depth = crawl_depth
 
 		SpiderMain.thread_num = thread_num
 		SpiderMain.wait_thread_num = thread_num
@@ -172,7 +171,7 @@ class SpiderMain:
 		self.outputer.close_sql_worker()
 
 if __name__ == '__main__':
-	root_url = "http://127.0.0.1/cms/"
+	root_url = "http://www.zhihu.com/"
 	crawl_depth = 4
 	thread_num = 5
 	con = threading.Condition()
