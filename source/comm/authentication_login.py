@@ -14,12 +14,12 @@ class Login(object):
 	# 
 	def do_login(self,url_befor, data, url_after):
 		# 不管成不成功都会有一个只
-		self.login_session.post(url_befor,data)
+		r = self.login_session.post(url_befor,data,allow_redirects=False)
 
-		r = self.login_session.get(url_after)
+		#r = self.login_session.get(url_after)
 		
 		# 登录成功则不处理
-		if r.status_code == requests.codes.ok:
+		if r.status_code == 302:
 			self.login_session
 			# 返回登录成功，且返回cookie
 			return True,requests.utils.dict_from_cookiejar(self.login_session.cookies)
