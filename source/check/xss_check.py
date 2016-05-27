@@ -11,6 +11,16 @@ import authentication_login
 
 import json,urllib
 
+'''
+re.sub(pattern, repl, string, max=0) 以正则为基础，在string中，把pattern替换成repl
+re.sub('[abc]', 'o', 'Mark')--》'Mork'  。
+str.replace(old, new[, max]) 把字符串中的 old 替换成 new ，替换不超过 max 次。
+re.finditer(pattern, string, flags=0) 返回一个迭代器,可以一个一个的得到匹配返回的 Match对象。这在对每次返回的对象进行比较复杂的操作时比较有用。
+re.search(pattern, string, flags=0) 扫描整个字符串并返回第一个成功的匹配。 re.I 使匹配对大小写不敏感
+re.escape(string) 对字符串中的非字母数字进行转义
+strip() 方法用于移除字符串头尾指定的字符（默认为空格）。
+'''
+
 PREFIX_SUFFIX_LENGTH = 5
 SMALLER_CHAR_POOL = ('<', '>')
 LARGER_CHAR_POOL = ('\'', '"', '>', '<', ';')
@@ -91,11 +101,13 @@ class XssCheck(object):
 			for match in re.finditer(r"((\A|[?&])(?P<parameter>[\w\[\]]+)=)(?P<value>[^&#]+)", current):
 				for pool in (LARGER_CHAR_POOL, SMALLER_CHAR_POOL):
 					#tampered = current.replace(match.group(0), "%s%s" % (match.group(0), urllib.quote("%s%s%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix, "".join(random.sample(pool, len(pool))), suffix))))
+					# tampered 是把上面获取的参数进行替换，domain+参数+[']前缀+随机pool+后缀，最后吧所有参数都url编码 # eg: ?page=8890%27tnmow%3C%3E%27%3B%22ukenc&id=34#at123 （?page=8890'tnmow<>';"ukenc&id=34#at123）
 					tampered = current.replace(match.group(0), "%s%s" % (match.group(0), "%s%s%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix, "".join(random.sample(pool, len(pool))), suffix)))
 					content = self._retrieve_content(url, tampered).replace("%s%s" % ("'" if pool == LARGER_CHAR_POOL else "", prefix), prefix) if data else self._retrieve_content(tampered, data)
-					#print content
+					#print content # 获取攻击之后的源码content
 					for sample in re.finditer("%s([^ ]+?)%s" % (prefix, suffix), content, re.I):
-						for regex, condition, info, content_removal_regex in REGULAR_PATTERNS:
+						for regex, condition, info, content_removal_regex in REGULAR_PATTERNS:	 #这里循环输出REGULAR_PATTERNS规律，进行匹配相关字段
+							# 使用正则 \A[^<>]*%(chars)s[^<>]*\Z  合并chars(rdjeo\;\"\>\<\'gqejn)之后，进行对返回源进行匹配eg: \A[^<>]*tnmow\;\"\>\<\'ukenc[^<>]*\Z
 							context = re.search(regex % {"chars": re.escape(sample.group(0))}, re.sub(content_removal_regex or "", "", content), re.I)
 							if context and sample.group(1).strip():
 								if self._contains(sample.group(1), condition):
@@ -126,28 +138,3 @@ class XssCheck(object):
 				yield self.do_xss_check(url,data)
 
 		sql_worker.close()
-
-'''
-if __name__ == '__main__':
-
-	s = requests.Session()
-
-#	url = "http://192.168.204.242/cms/admin/login.action.php"
-#	data = {"username":"admin","password":"123456"}
-#	datap = "username=admin'/><scRipt>alert(1)</scRipt>&password=123456"
-#	r = s.post(url,data,allow_redirects=False)
-#	print s.get("http://192.168.204.242/cms/admin/index.php").text
-
-	xss = XssCheck(s)
-#	print xss._retrieve_content(url,datap)
-	qwe = xss.xss_check_main()
-	for x in qwe:
-		for xx in x:
-			print xx
-
-
-http://192.168.24.129/cms/admin/login.action.php
-username
-password
-http://192.168.24.129/cms/admin/index.php
-'''
