@@ -9,6 +9,7 @@ import time
 import wx
 from xss_check import XssCheck
 from sqlite3worker import Sqlite3Worker
+from reporter import Reporter
 
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
@@ -72,6 +73,11 @@ class XssCheckThread(threading.Thread):
 		else:
 			print result_list
 
+		# 加锁输出报告
+		self.lock.acquire()
+		CheckMain.reporter.write(result_tuple)
+		self.lock.release()
+
 
 class CheckMain(object):
 	"""
@@ -84,6 +90,9 @@ class CheckMain(object):
 		self.threads = []
 		self.lock = threading.Lock()
 		self.login_session = login_session
+
+		# 报告输出
+		CheckMain.reporter = Reporter()
 
 		# 从数据库中查数据
 		self.sql_worker = Sqlite3Worker("../config/spiderurls.db")
@@ -131,7 +140,9 @@ class CheckMain(object):
 		# 睡眠三秒再关闭数据库连接，不然有些线程没写完会引发异常
 		time.sleep(3)
 		self.sql_worker.close()
+		# 关闭文件
+		CheckMain.reporter.close_file()
 
 if __name__ == '__main__':
-	check_main = CheckMain(None, 2)
+	check_main = CheckMain(None, 3, None)
 	check_main.checking()

@@ -41,8 +41,8 @@ class SpiderThread(threading.Thread):
 
 	def run(self):
 		while 1:
-			print "空闲",SpiderMain.wait_thread_num
-			print "空",self.url_queue.is_empty()
+			#print "空闲",SpiderMain.wait_thread_num
+			#print "空",self.url_queue.is_empty()
 			if SpiderMain.stoped:
 				break			
 			# 当队列为空时，默认当做还有其他线程正在工作，等待3秒，如果3秒过后还为空则超时退出
